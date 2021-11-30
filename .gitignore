@@ -1,0 +1,51 @@
+### OSX ###
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs
+*.log.*
+*.log
+
+# Sublime
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+
+# Pycharm
+.idea
+
+# Vscode
+.vscode
+*.code-workspace
+
+# Vim
+*~
+*.swp
+*.swo
+
+# Backend python
+*.py[cod]
+__pycache__
+
+# Backend translations
+*.mo
+*.pot
+
+# Backend cache
+.cache
+.pytest_cache/
+.sass-cache
+
+# Backend virtual environments
+.env*
+env
+.venv*
+venv
+
+# Backend pytest
+htmlcov/
+coverage/
+.coverage
+.coverage.*

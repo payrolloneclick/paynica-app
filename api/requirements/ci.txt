@@ -1,0 +1,13 @@
+-r base.txt
+
+pre-commit
+flake8
+black
+flake8-black
+detect-secrets
+isort
+interrogate
+coverage
+pytest
+pytest-cov
+pytest-asyncio

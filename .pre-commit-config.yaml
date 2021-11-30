@@ -1,0 +1,32 @@
+default_language_version:
+  python: python3.8
+fail_fast: true
+repos:
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.1.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+
+  - repo: local
+    hooks:
+      - id: api-linters-fix
+        name: API Linters Fix
+        entry: bash -c 'cd api && make fix'
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: api-linters
+        name: API Linters
+        entry: bash -c 'cd api && make lint'
+        language: system
+        types: [python]
+        pass_filenames: false
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: detect-private-key
