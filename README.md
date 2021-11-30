@@ -1,4 +1,4 @@
-# Paynica API
+# Paynica
 
 Dev backend stack:
 
