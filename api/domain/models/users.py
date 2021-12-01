@@ -6,43 +6,22 @@ import string
 from datetime import datetime
 from typing import Optional
 
-from pydantic.types import UUID4
+from .generic import AbstractModel
 
 
-class User:
-    def __init__(
-        self,
-        pk: UUID4,
-        email: str,
-        phone: str,
-        first_name: str,
-        last_name: str,
-        password_hash: Optional[str] = None,
-        phone_code: Optional[str] = None,
-        email_code: Optional[str] = None,
-        password_code: Optional[str] = None,
-        is_phone_verified: Optional[bool] = False,
-        is_email_verified: Optional[bool] = False,
-        is_active: Optional[bool] = False,
-        last_login: Optional[datetime] = None,
-        created_date: Optional[datetime] = None,
-        updated_date: Optional[datetime] = None,
-    ):
-        self.pk = pk
-        self.email = email
-        self.phone = phone
-        self.first_name = first_name
-        self.last_name = last_name
-        self.password_hash = password_hash
-        self.phone_code = phone_code
-        self.email_code = email_code
-        self.password_code = password_code
-        self.is_phone_verified = is_phone_verified
-        self.is_email_verified = is_email_verified
-        self.is_active = is_active
-        self.last_login = last_login
-        self.created_date = created_date
-        self.updated_date = updated_date
+class User(AbstractModel):
+    email: str
+    phone: str
+    first_name: str
+    last_name: str
+    password_hash: Optional[str] = None
+    phone_code: Optional[str] = None
+    email_code: Optional[str] = None
+    password_code: Optional[str] = None
+    is_phone_verified: Optional[bool] = False
+    is_email_verified: Optional[bool] = False
+    is_active: Optional[bool] = False
+    last_login: Optional[datetime] = None
 
     async def _get_password_hash(self, password: str, salt: bytes) -> bytes:
         return hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 10000)
