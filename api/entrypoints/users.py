@@ -1,25 +1,33 @@
 from typing import List
+
 from fastapi import APIRouter, BackgroundTasks, Depends
 from pydantic.types import UUID4
 
 from adapters.email.email import EmailAdapter
 from adapters.sms.sms import SmsAdapter
-from domain.models.users import User
 from service_layer.services import users as users_services
 from service_layer.unit_of_work.db import DBUnitOfWork
 
-from .dependencies import token_auth_scheme
-from .schemas.users import UserEmailCodeRequest, UserEmailRequest, UserPhoneCodeRequest, UserPhoneRequest, UserPresetPasswordRequest, UserRequest, UserResponse
+from .dependencies import get_current_user_pk
+from .schemas.users import (
+    UserCreateRequest,
+    UserEmailCodeRequest,
+    UserEmailRequest,
+    UserPhoneCodeRequest,
+    UserPhoneRequest,
+    UserPresetPasswordRequest,
+    UserResponse,
+    UserUpdateRequest,
+)
 
 router = APIRouter(
     prefix="/users",
     tags=["users"],
-    dependencies=[Depends(token_auth_scheme)],
 )
 
 
 @router.post("/create-inactive-user", response_model=UserResponse)
-async def create_inactive_user(user: UserRequest):
+async def create_inactive_user(user: UserCreateRequest):
     """Create inactive user."""
     uow = DBUnitOfWork()
     user = await users_services.create_user(
@@ -92,44 +100,42 @@ async def reset_password(body: UserPresetPasswordRequest):
 
 
 @router.get("/profile", response_model=UserResponse)
-async def get_profile():
+async def get_profile(current_user_pk: UUID4 = Depends(get_current_user_pk)):
     """Get profile of authenticated user."""
-    # TODO
-    pk = None
     uow = DBUnitOfWork()
-    user = await users_services.get_active_user(uow, pk)
+    user = await users_services.get_active_user(uow, current_user_pk)
     return UserResponse(**user.dict())
 
 
 @router.patch("/profile", response_model=UserResponse)
-async def update_profile(user: UserRequest):
+async def update_profile(user: UserUpdateRequest, current_user_pk: UUID4 = Depends(get_current_user_pk)):
     """Update profile of authenticated user."""
-    # TODO
-    pk = None
     uow = DBUnitOfWork()
-    user = await users_services.get_active_user(uow, pk)
-    user = await users_services.update_user(
+    updated_user = await users_services.update_user(
         uow,
-        pk,
+        current_user_pk,
         first_name=user.first_name,
         last_name=user.last_name,
         email=user.email,
         phone=user.phone,
         password=user.password,
     )
-    return UserResponse(**user.dict())
+    return UserResponse(**updated_user.dict())
 
 
 @router.delete("/profile")
-async def delete_profile():
+async def delete_profile(current_user_pk: UUID4 = Depends(get_current_user_pk)):
     """Delete/inactivate profile of authenticated user."""
-    pk = None
     uow = DBUnitOfWork()
-    pk = await users_services.delete_user(uow, pk)
+    pk = await users_services.delete_user(uow, current_user_pk)
     return pk
 
 
 @router.get("/recipients", response_model=List[UserResponse])
-async def get_recipients():
+async def get_recipients(current_user_pk: UUID4 = Depends(get_current_user_pk)):
     """Get recipients to create an operation."""
-    return [{"username": "fakecurrentuser"}]
+    uow = DBUnitOfWork()
+    user = await users_services.get_active_user(uow, current_user_pk)
+    user = None
+    recipients = await users_services.get_recipients_for_user(uow, user)
+    return [UserResponse(**r.dict()) for r in recipients]

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 from uuid import uuid4
 
 from pydantic.types import UUID4
@@ -186,3 +186,12 @@ async def delete_user(
         await uow.users.delete(pk)
         await uow.commit()
     return pk
+
+
+async def get_recipients_for_user(
+    uow: AbstractUnitOfWork,
+    user: User,
+) -> List[User]:
+    async with uow:
+        recipients = await uow.users.all()
+    return recipients

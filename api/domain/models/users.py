@@ -8,6 +8,7 @@ from typing import Optional
 
 from .generic import AbstractModel
 
+
 class User(AbstractModel):
     email: str
     phone: str
@@ -40,8 +41,8 @@ class User(AbstractModel):
         password_hash = password_hash.hex()
         return hmac.compare_digest(db_password_hash, password_hash)
 
-    async def randomly_set_phone_verification_code(self, length: int = 6) -> None:
+    async def randomly_set_phone_code(self, length: int = 6) -> None:
         self.phone_code = "".join(secrets.choice(string.digits) for _ in range(length))
 
-    async def randomly_set_email_verification_code(self, length: int = 16) -> None:
+    async def randomly_set_email_code(self, length: int = 16) -> None:
         self.email_code = secrets.token_hex(length)

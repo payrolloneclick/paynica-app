@@ -1,6 +1,6 @@
-from settings import DATABASE_URI
 from adapters.repositories.db import operations, users
 from adapters.repositories.session.db import DBSession
+from settings import DATABASE_URI
 
 from .generic import AbstractUnitOfWork
 

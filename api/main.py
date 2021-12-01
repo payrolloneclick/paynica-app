@@ -7,7 +7,7 @@ from entrypoints.index import router as index_router
 from entrypoints.operations import router as operations_router
 from entrypoints.users import router as users_router
 
-app = FastAPI()
+app = FastAPI(title="Paynica", version="0.0.1")
 
 
 @app.exception_handler(ObjectDoesNotExist)
