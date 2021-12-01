@@ -7,13 +7,13 @@ from .generic import AbstractFakeRepository
 
 class UsersFakeRepository(AbstractFakeRepository):
     async def all(self) -> List[User]:
-        return super().all()
+        return await super().all()
 
     async def filter(self, **kwargs) -> List[User]:
-        return super().filter(**kwargs)
+        return await super().filter(**kwargs)
 
     async def get(self, **kwargs) -> User:
-        return super().get(**kwargs)
+        return await super().get(**kwargs)
 
     async def add(self, obj: User) -> None:
-        return super().add(obj)
+        return await super().add(obj)
