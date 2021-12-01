@@ -11,9 +11,29 @@ class UserRequest(BaseModel):
     repeat_password: str
 
 
-class UserPasswordrequest(BaseModel):
+class UserPasswordRequest(BaseModel):
     password: str
     repeat_password: str
+
+
+class UserEmailRequest(BaseModel):
+    email: str
+
+
+class UserEmailCodeRequest(BaseModel):
+    email_code: str
+
+
+class UserPhoneRequest(BaseModel):
+    email: str
+
+
+class UserPhoneCodeRequest(BaseModel):
+    email_code: str
+
+
+class UserPresetPasswordRequest(UserPasswordRequest):
+    password_code: str
 
 
 class UserResponse(BaseModel):

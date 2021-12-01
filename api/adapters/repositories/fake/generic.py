@@ -11,7 +11,7 @@ from ..session.generic import AbstractSession
 class AbstractFakeRepository(AbstractRepository):
     def __init__(self, session: AbstractSession) -> None:
         self.session = session
-        self._objs = []
+        self._objs = {}
 
     async def add(self, obj: BaseModel) -> None:
         if obj.pk in self._objs:
