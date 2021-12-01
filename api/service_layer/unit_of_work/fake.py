@@ -1,4 +1,4 @@
-from api.adapters.repositories.fake import operations, users
+from adapters.repositories.fake import operations, users
 
 from .generic import AbstractUnitOfWork
 

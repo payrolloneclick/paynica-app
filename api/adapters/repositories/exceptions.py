@@ -1,5 +1,10 @@
+from typing import Any
+
+
 class RepositoryException(Exception):
-    pass
+    def __init__(self, detail: Any = None) -> None:
+        super().__init__()
+        self.detail = detail
 
 
 class ObjectAlreadyExists(RepositoryException):
@@ -7,4 +12,8 @@ class ObjectAlreadyExists(RepositoryException):
 
 
 class ObjectDoesNotExist(RepositoryException):
+    pass
+
+
+class MultipleObjectsReturned(RepositoryException):
     pass

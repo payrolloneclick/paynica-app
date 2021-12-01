@@ -2,7 +2,6 @@ import aiohttp
 from fastapi import APIRouter
 
 router = APIRouter(
-    prefix="/",
     tags=["index"],
 )
 

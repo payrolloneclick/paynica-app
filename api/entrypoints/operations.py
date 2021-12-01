@@ -7,7 +7,6 @@ router = APIRouter(
     prefix="/operations",
     tags=["operations"],
     dependencies=[Depends(token_auth_scheme)],
-    responses={403: {"description": "Operation forbidden"}, 404: {"description": "Not found"}},
 )
 
 

@@ -1,13 +1,18 @@
 import abc
 
-from api.adapters.repositories.generic import AbstractRepository
+from adapters.repositories.db.operations import (
+    OperationsDBRepository,
+    RecipientProfilesDBRepository,
+    SenderProfilesDBRepository,
+)
+from adapters.repositories.db.users import UsersDBRepository
 
 
 class AbstractUnitOfWork(abc.ABC):
-    users: AbstractRepository
-    sender_profiles: AbstractRepository
-    recipient_profiles: AbstractRepository
-    operations: AbstractRepository
+    users: UsersDBRepository
+    sender_profiles: SenderProfilesDBRepository
+    recipient_profiles: RecipientProfilesDBRepository
+    operations: OperationsDBRepository
 
     async def __aexit__(self, *args, **kwargs):
         # rollback does nothing in case we run commit into context manager before exit

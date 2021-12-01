@@ -3,13 +3,13 @@ import abc
 
 class AbstractSession(abc.ABC):
     @abc.abstractmethod
-    async def commit(self):
+    async def commit(self) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def rollback(self):
+    async def rollback(self) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def close(self):
+    async def close(self) -> None:
         raise NotImplementedError
