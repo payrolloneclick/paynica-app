@@ -5,6 +5,10 @@ from .generic import AbstractSession
 class DBSession(AbstractSession):
     def __init__(self, uri: str) -> None:
         self.uri = uri
+        self.objects = {}
+
+    async def open(self) -> None:
+        pass
 
     async def commit(self) -> None:
         pass

@@ -14,12 +14,12 @@ class User(AbstractModel):
     phone: str
     first_name: str
     last_name: str
-    password: Optional[str] = None  # we store hash of password
-    last_login: Optional[datetime] = None
+    password: Optional[str]  # we store hash of password
+    last_login: Optional[datetime]
 
-    phone_code: Optional[str] = None
-    email_code: Optional[str] = None
-    password_code: Optional[str] = None
+    phone_code: Optional[str]
+    email_code: Optional[str]
+    password_code: Optional[str]
 
     is_phone_verified: Optional[bool] = False
     is_email_verified: Optional[bool] = False

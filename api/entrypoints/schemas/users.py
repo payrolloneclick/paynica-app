@@ -1,6 +1,8 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
+
+from .validations import validate_email, validate_phone
 
 
 class UserCreateRequest(BaseModel):
@@ -11,6 +13,20 @@ class UserCreateRequest(BaseModel):
     password: str
     repeat_password: str
 
+    @validator("password")
+    def passwords_match(cls, v, values, **kwargs):
+        if "repeat_password" in values and v != values["repeat_password"]:
+            raise ValueError("Passwords do not match")
+        return v
+
+    @validator("email")
+    def email_validator(cls, v):
+        return validate_email(v)
+
+    @validator("phone")
+    def phone_validator(cls, v):
+        return validate_phone(v)
+
 
 class UserUpdateRequest(BaseModel):
     email: Optional[str]
@@ -20,14 +36,38 @@ class UserUpdateRequest(BaseModel):
     password: Optional[str]
     repeat_password: Optional[str]
 
+    @validator("password")
+    def passwords_match(cls, v, values, **kwargs):
+        if "repeat_password" in values and v != values["repeat_password"]:
+            raise ValueError("Passwords do not match")
+        return v
+
+    @validator("email")
+    def email_validator(cls, v):
+        return validate_email(v)
+
+    @validator("phone")
+    def phone_validator(cls, v):
+        return validate_phone(v)
+
 
 class UserPasswordRequest(BaseModel):
     password: str
     repeat_password: str
 
+    @validator("password")
+    def passwords_match(cls, v, values, **kwargs):
+        if "repeat_password" in values and v != values["repeat_password"]:
+            raise ValueError("Passwords do not match")
+        return v
+
 
 class UserEmailRequest(BaseModel):
     email: str
+
+    @validator("email")
+    def email_validator(cls, v):
+        return validate_email(v)
 
 
 class UserEmailCodeRequest(BaseModel):
@@ -35,11 +75,15 @@ class UserEmailCodeRequest(BaseModel):
 
 
 class UserPhoneRequest(BaseModel):
-    email: str
+    phone: str
+
+    @validator("phone")
+    def phone_validator(cls, v):
+        return validate_phone(v)
 
 
 class UserPhoneCodeRequest(BaseModel):
-    email_code: str
+    phone_code: str
 
 
 class UserPresetPasswordRequest(UserPasswordRequest):

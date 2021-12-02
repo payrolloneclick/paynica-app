@@ -6,8 +6,19 @@ from adapters.repositories.exceptions import ObjectDoesNotExist, RepositoryExcep
 from entrypoints.index import router as index_router
 from entrypoints.operations import router as operations_router
 from entrypoints.users import router as users_router
+from bootstrap import uow
 
 app = FastAPI(title="Paynica", version="0.0.1")
+
+
+@app.on_event("startup")
+async def startup():
+    await uow.session.open()
+
+
+@app.on_event("shutdown")
+async def startup():
+    await uow.session.close()
 
 
 @app.exception_handler(ObjectDoesNotExist)

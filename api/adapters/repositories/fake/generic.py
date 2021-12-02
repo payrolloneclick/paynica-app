@@ -7,18 +7,16 @@ from ..exceptions import MultipleObjectsReturned, ObjectAlreadyExists, ObjectDoe
 from ..generic import AbstractRepository
 from ..session.generic import AbstractSession
 
-MEMORY_OBJS = {}
-
 
 class AbstractFakeRepository(AbstractRepository):
     def __init__(self, session: AbstractSession) -> None:
         self.session = session
 
     async def add(self, obj: BaseModel) -> None:
-        if obj.pk in MEMORY_OBJS:
+        if obj.pk in self.session.objects:
             raise ObjectAlreadyExists
         print(obj)
-        MEMORY_OBJS[obj.pk] = obj
+        self.session.objects[obj.pk] = obj
 
     async def get(self, **kwargs) -> BaseModel:
         objs = await self.filter(**kwargs)
@@ -38,17 +36,17 @@ class AbstractFakeRepository(AbstractRepository):
         return [o for o in objs]
 
     async def all(self) -> List[BaseModel]:
-        return MEMORY_OBJS.values()
+        return self.session.objects.values()
 
     async def update(self, obj: BaseModel) -> None:
-        if obj.pk not in MEMORY_OBJS:
+        if obj.pk not in self.session.objects:
             raise ObjectDoesNotExist
         print(obj)
-        MEMORY_OBJS[obj.pk] = obj
+        self.session.objects[obj.pk] = obj
 
     async def delete(self, pk: UUID4) -> UUID4:
-        if pk not in MEMORY_OBJS:
+        if pk not in self.session.objects:
             raise ObjectDoesNotExist
-        if pk in MEMORY_OBJS:
-            del MEMORY_OBJS[pk]
+        if pk in self.session.objects:
+            del self.session.objects[pk]
         return pk

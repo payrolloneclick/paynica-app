@@ -1,6 +1,9 @@
 from fastapi import Depends
 from fastapi.security import HTTPBearer
 
+from adapters.email.email import EmailAdapter
+from adapters.sms.sms import SmsAdapter
+
 token_auth_scheme = HTTPBearer()
 
 

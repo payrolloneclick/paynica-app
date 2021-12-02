@@ -19,23 +19,23 @@ class Country(str, Enum):
     RUS = "RUS"
 
 
-class SenderProfile(AbstractModel):
-    user: User
-    currency: Currency
-    country_alpha3: Country
-
-
-class RecipientProfile(AbstractModel):
+class Account(AbstractModel):
     user: User
     currency: Currency
     country_alpha3: Country
 
 
 class Operation(AbstractModel):
-    sender_profile: Optional[SenderProfile] = None
-    recipient_profile: Optional[RecipientProfile] = None
-    sender_amount: Optional[Decimal] = None
-    recipient_amount: Optional[Decimal] = None
-    punica_fee: Optional[Decimal] = None
-    crypto_fee: Optional[Decimal] = None
-    crypto_to_cash_fee: Optional[Decimal] = None
+    sender_account: Optional[Account]
+    sender_amount: Optional[Decimal]
+    sender_currency: Optional[Currency]
+    sender_country_alpha3: Optional[Country]
+
+    recipient_account: Optional[Account]
+    recipient_amount: Optional[Decimal]
+    recipient_currency: Optional[Currency]
+    recipient_country_alpha3: Optional[Country]
+
+    punica_fee: Optional[Decimal]
+    crypto_fee: Optional[Decimal]
+    crypto_to_cash_fee: Optional[Decimal]
