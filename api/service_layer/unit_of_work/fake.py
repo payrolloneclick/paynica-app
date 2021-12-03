@@ -9,8 +9,7 @@ class FakeUnitOfWork(AbstractUnitOfWork):
 
     async def __aenter__(self):
         self.users = users.UsersFakeRepository(self.session)
-        self.sender_profiles = operations.SenderProfilesFakeRepository(self.session)
-        self.recipient_profiles = operations.RecipientProfilesFakeRepository(self.session)
+        self.accounts = operations.AccountFakeRepository(self.session)
         self.operations = operations.OperationsFakeRepository(self.session)
 
     async def commit(self):

@@ -11,8 +11,7 @@ class DBUnitOfWork(AbstractUnitOfWork):
 
     async def __aenter__(self):
         self.users = users.UsersDBRepository(self.session)
-        self.sender_profiles = operations.SenderProfilesDBRepository(self.session)
-        self.recipient_profiles = operations.RecipientProfilesDBRepository(self.session)
+        self.accounts = operations.AccountDBRepository(self.session)
         self.operations = operations.OperationsDBRepository(self.session)
 
     async def __aexit__(self, *args, **kwargs):

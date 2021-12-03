@@ -1,98 +1,102 @@
 from fastapi import APIRouter, BackgroundTasks, Depends
 from pydantic.types import UUID4
 
-from service_layer.services import users as users_services
-from bootstrap import sms_adapter, email_adapter, uow
+from bootstrap import bus
+from domain.commands.users import (
+    CreateUserCommand,
+    DeleteUserCommand,
+    GenerateEmailCodeCommand,
+    GeneratePhoneCodeCommand,
+    GenerateResetPasswordCodeCommand,
+    ResetPasswordCommand,
+    RetrieveUserCommand,
+    SendEmailCodeByEmailCommand,
+    SendPhoneCodeBySmsCommand,
+    SendResetPasswordCodeByEmailCommand,
+    UpdateUserCommand,
+    VerifyEmailCodeCommand,
+    VerifyPhoneCodeCommand,
+)
+from domain.responses.users import UserResponse
 
 from .dependencies import get_current_user_pk
-from .schemas.users import (
-    UserCreateRequest,
-    UserEmailCodeRequest,
-    UserEmailRequest,
-    UserPhoneCodeRequest,
-    UserPhoneRequest,
-    UserPresetPasswordRequest,
-    UserResponse,
-    UserUpdateRequest,
-)
 
 router = APIRouter(
     prefix="/users",
     tags=["users"],
 )
 
+
 @router.post("/create-inactive-user", response_model=UserResponse)
 async def create_inactive_user(
-    body: UserCreateRequest,
+    command: CreateUserCommand,
 ):
     """Create inactive user."""
-    user = await users_services.create_user(
-        uow,
-        **body.dict(exclude_unset=True, exclude_none=True, exclude=set(["repeat_password"])),
-    )
-    return UserResponse(**user.dict())
+    result = await bus.handler(command)
+    return UserResponse(**result.dict())
 
 
 @router.post("/send-email-code", response_model=UserResponse)
 async def send_email_code(
-    body: UserEmailRequest,
+    command: GenerateEmailCodeCommand,
     background_tasks: BackgroundTasks,
 ):
     """Send email code to verify email."""
-    user = await users_services.save_email_code_for_email(uow, body.email)
-    background_tasks.add_task(users_services.send_email_code_by_email, email_adapter=email_adapter, user=user)
-    return UserResponse(**user.dict())
+    result = await bus.handler(command)
+    send_command = SendEmailCodeByEmailCommand(user=result)
+    background_tasks.add_task(bus.handler, send_command)
+    return UserResponse(**result.dict())
 
 
 @router.post("/verify-email", response_model=UserResponse)
 async def verify_email(
-    body: UserEmailCodeRequest,
+    command: VerifyEmailCodeCommand,
 ):
     """Verify email."""
-    user = await users_services.verify_email_code(uow, body.email_code)
-    return UserResponse(**user.dict())
+    result = await bus.handler(command)
+    return UserResponse(**result.dict())
 
 
 @router.post("/send-phone-code", response_model=UserResponse)
 async def send_phone_code(
-    body: UserPhoneRequest,
+    command: GeneratePhoneCodeCommand,
     background_tasks: BackgroundTasks,
 ):
     """Send phone code to verify email."""
-    user = await users_services.save_phone_code_for_phone(uow, body.phone)
-    background_tasks.add_task(users_services.send_phone_code_by_sms, sms_adapter=sms_adapter, user=user)
-    return UserResponse(**user.dict())
+    result = await bus.handler(command)
+    send_command = SendPhoneCodeBySmsCommand(user=result)
+    background_tasks.add_task(bus.handler, send_command)
+    return UserResponse(**result.dict())
 
 
 @router.post("/verify-phone", response_model=UserResponse)
 async def verify_phone(
-    body: UserPhoneCodeRequest,
+    command: VerifyPhoneCodeCommand,
 ):
     """Verify phone."""
-    user = await users_services.verify_phone_code(uow, body.phone_code)
-    return UserResponse(**user.dict())
+    result = await bus.handler(command)
+    return UserResponse(**result.dict())
 
 
 @router.post("/send-password-code", response_model=UserResponse)
 async def send_password_code(
-    body: UserEmailRequest,
+    command: GenerateResetPasswordCodeCommand,
     background_tasks: BackgroundTasks,
 ):
     """Send password code to verify email."""
-    user = await users_services.save_password_code_for_email(uow, body.email)
-    background_tasks.add_task(users_services.send_password_code_by_email, email_adapter=email_adapter, user=user)
-    return UserResponse(**user.dict())
+    result = await bus.handler(command)
+    send_command = SendResetPasswordCodeByEmailCommand(user=result)
+    background_tasks.add_task(bus.handler, send_command)
+    return UserResponse(**result.dict())
 
 
 @router.post("/reset-password", response_model=UserResponse)
 async def reset_password(
-    body: UserPresetPasswordRequest,
+    command: ResetPasswordCommand,
 ):
     """Verify password code and reset password."""
-    user = await users_services.verify_password_code_and_reset_password(
-        uow, **body.dict(exclude_unset=True, exclude_none=True)
-    )
-    return UserResponse(**user.dict())
+    result = await bus.handler(command)
+    return UserResponse(**result.dict())
 
 
 @router.get("/profile", response_model=UserResponse)
@@ -100,24 +104,24 @@ async def get_profile(
     current_user_pk: UUID4 = Depends(get_current_user_pk),
 ):
     """Get profile of authenticated user."""
-    user = await users_services.get_active_user(uow, current_user_pk)
-    return UserResponse(**user.dict())
+    result = await bus.handler(RetrieveUserCommand(pk=current_user_pk), current_user_pk=current_user_pk)
+    return UserResponse(**result.dict())
 
 
 @router.patch("/profile", response_model=UserResponse)
 async def update_profile(
-    body: UserUpdateRequest,
+    command: UpdateUserCommand,
     current_user_pk: UUID4 = Depends(get_current_user_pk),
 ):
     """Update profile of authenticated user."""
-    user = await users_services.update_user(uow, current_user_pk, **body.dict(exclude_unset=True, exclude_none=True))
-    return UserResponse(**user.dict())
+    result = await bus.handler(command, current_user_pk=current_user_pk)
+    return UserResponse(**result.dict())
 
 
-@router.delete("/profile")
+@router.delete("/profile", response_model=UserResponse)
 async def delete_profile(
     current_user_pk: UUID4 = Depends(get_current_user_pk),
 ):
     """Delete/inactivate profile of authenticated user."""
-    pk = await users_services.delete_user(uow, current_user_pk)
-    return pk
+    result = await bus.handler(DeleteUserCommand(pk=current_user_pk), current_user_pk=current_user_pk)
+    return UserResponse(**result.dict())

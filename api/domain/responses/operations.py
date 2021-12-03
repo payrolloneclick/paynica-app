@@ -1,39 +1,26 @@
 from decimal import Decimal
-from enum import Enum
 from typing import Optional
 
-from .generic import AbstractModel
-from .users import User
+from pydantic.types import UUID4
+
+from ..models.operations import Country, Currency
+from .generic import AbstractReponse
 
 
-class Currency(str, Enum):
-    USD = "USD"
-    GBR = "GBP"
-    EUR = "EUR"
-    RUB = "RUB"
-
-
-class Country(str, Enum):
-    USA = "USA"
-    GBR = "GBR"
-    RUS = "RUS"
-
-
-class Account(AbstractModel):
-    user: User
+class AccountResponse(AbstractReponse):
     currency: Currency
     country_alpha3: Country
 
 
-class Operation(AbstractModel):
-    user: User
+class OperationResponse(AbstractReponse):
+    pk: Optional[UUID4]
 
-    sender_account: Optional[Account]
+    sender_account: Optional[AccountResponse]
     sender_amount: Optional[Decimal]
     sender_currency: Optional[Currency]
     sender_country_alpha3: Optional[Country]
 
-    recipient_account: Optional[Account]
+    recipient_account: Optional[AccountResponse]
     recipient_amount: Optional[Decimal]
     recipient_currency: Optional[Currency]
     recipient_country_alpha3: Optional[Country]

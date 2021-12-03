@@ -1,13 +1,8 @@
-from ..fake.operations import OperationsFakeRepository, RecipientProfilesFakeRepository, SenderProfilesFakeRepository
+from ..fake.operations import AccountFakeRepository, OperationsFakeRepository
 
 
 # TODO
-class SenderProfilesDBRepository(SenderProfilesFakeRepository):
-    pass
-
-
-# TODO
-class RecipientProfilesDBRepository(RecipientProfilesFakeRepository):
+class AccountDBRepository(AccountFakeRepository):
     pass
 
 

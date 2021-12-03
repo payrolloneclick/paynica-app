@@ -1,17 +1,12 @@
 import abc
 
-from adapters.repositories.db.operations import (
-    OperationsDBRepository,
-    RecipientProfilesDBRepository,
-    SenderProfilesDBRepository,
-)
+from adapters.repositories.db.operations import AccountDBRepository, OperationsDBRepository
 from adapters.repositories.db.users import UsersDBRepository
 
 
 class AbstractUnitOfWork(abc.ABC):
     users: UsersDBRepository
-    sender_profiles: SenderProfilesDBRepository
-    recipient_profiles: RecipientProfilesDBRepository
+    accounts: AccountDBRepository
     operations: OperationsDBRepository
 
     async def __aexit__(self, *args, **kwargs):

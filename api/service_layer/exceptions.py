@@ -1,11 +1,11 @@
 from typing import Any
 
 
-class EntrypointsException(Exception):
+class ServiceException(Exception):
     def __init__(self, detail: Any = None) -> None:
         super().__init__()
         self.detail = detail
 
 
-class NotAuthorizedException(EntrypointsException):
+class PermissionDeniedException(ServiceException):
     pass

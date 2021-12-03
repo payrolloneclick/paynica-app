@@ -1,11 +1,15 @@
 from typing import Optional
 
-from pydantic import BaseModel, validator
+from pydantic import validator
+from pydantic.types import UUID4
 
-from .validations import validate_email, validate_phone
+from domain.models.users import User
+
+from ..validations import validate_email, validate_phone
+from .generic import AbstractCommand
 
 
-class UserCreateRequest(BaseModel):
+class CreateUserCommand(AbstractCommand):
     email: str
     phone: str
     first_name: str
@@ -28,7 +32,11 @@ class UserCreateRequest(BaseModel):
         return validate_phone(v)
 
 
-class UserUpdateRequest(BaseModel):
+class RetrieveUserCommand(AbstractCommand):
+    pk: UUID4
+
+
+class UpdateUserCommand(AbstractCommand):
     email: Optional[str]
     phone: Optional[str]
     first_name: Optional[str]
@@ -51,7 +59,11 @@ class UserUpdateRequest(BaseModel):
         return validate_phone(v)
 
 
-class UserPasswordRequest(BaseModel):
+class DeleteUserCommand(AbstractCommand):
+    pk: UUID4
+
+
+class UserChangePasswordCommand(AbstractCommand):
     password: str
     repeat_password: str
 
@@ -62,7 +74,7 @@ class UserPasswordRequest(BaseModel):
         return v
 
 
-class UserEmailRequest(BaseModel):
+class GenerateEmailCodeCommand(AbstractCommand):
     email: str
 
     @validator("email")
@@ -70,11 +82,15 @@ class UserEmailRequest(BaseModel):
         return validate_email(v)
 
 
-class UserEmailCodeRequest(BaseModel):
+class SendEmailCodeByEmailCommand(AbstractCommand):
+    user: User
+
+
+class VerifyEmailCodeCommand(AbstractCommand):
     email_code: str
 
 
-class UserPhoneRequest(BaseModel):
+class GeneratePhoneCodeCommand(AbstractCommand):
     phone: str
 
     @validator("phone")
@@ -82,16 +98,21 @@ class UserPhoneRequest(BaseModel):
         return validate_phone(v)
 
 
-class UserPhoneCodeRequest(BaseModel):
+class SendPhoneCodeBySmsCommand(AbstractCommand):
+    user: User
+
+
+class VerifyPhoneCodeCommand(AbstractCommand):
     phone_code: str
 
 
-class UserPresetPasswordRequest(UserPasswordRequest):
+class GenerateResetPasswordCodeCommand(GenerateEmailCodeCommand):
+    pass
+
+
+class SendResetPasswordCodeByEmailCommand(SendEmailCodeByEmailCommand):
+    pass
+
+
+class ResetPasswordCommand(UserChangePasswordCommand):
     password_code: str
-
-
-class UserResponse(BaseModel):
-    email: str
-    phone: str
-    first_name: str
-    last_name: str
