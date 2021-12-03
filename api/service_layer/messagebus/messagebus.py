@@ -68,13 +68,13 @@ class MessageBus(AbstractMessageBus):
 
     async def handler(self, message: AbstractMessage, current_user_pk: Optional[UUID4] = None) -> AbstractReponse:
         message_type = type(message)
-        handler = COMMANDS.get(message_type)
-        if not handler:
+        handler_fn = COMMANDS.get(message_type)
+        if not handler_fn:
             raise Exception
-        return await handler(
+        return await handler_fn(
             message,
             **filter_dependencies(
-                handler,
+                handler_fn,
                 dict(
                     uow=self.uow,
                     sms_adapter=self.sms_adapter,
