@@ -23,12 +23,12 @@ async def shutdown():
 
 
 @app.exception_handler(ObjectDoesNotExist)
-async def exception_callback(request: Request, exc: ObjectDoesNotExist):
+async def does_not_exist_callback(request: Request, exc: ObjectDoesNotExist):
     return JSONResponse({"detail": exc.detail}, status_code=404)
 
 
 @app.exception_handler(PermissionDeniedException)
-async def exception_callback(request: Request, exc: PermissionDeniedException):
+async def permission_denied_callback(request: Request, exc: PermissionDeniedException):
     return JSONResponse({"detail": exc.detail}, status_code=503)
 
 
