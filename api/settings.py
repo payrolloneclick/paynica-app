@@ -1,4 +1,5 @@
 import os
+
 from environs import Env
 
 # BASE PATH
@@ -17,4 +18,4 @@ DATABASE_URI = env.str("DATABASE_URI", None)
 # JWT
 JWT_SECRET_KEY = env.str("JWT_SECRET_KEY")
 JWT_ACCESS_TOKEN_EXPIRED_AT = env.int("JWT_ACCESS_TOKEN_EXPIRED_AT")  # in sec
-JWT_REFRESH_TOKEN_EXPIRED_AT = env.int("JWT_REFRESH_TOKEN_EXPIRED_AT")   # in sec
+JWT_REFRESH_TOKEN_EXPIRED_AT = env.int("JWT_REFRESH_TOKEN_EXPIRED_AT")  # in sec
