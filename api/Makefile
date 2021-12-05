@@ -32,5 +32,5 @@ lint:
 
 .PHONY: test
 test:
-	TEST_ENV=true pytest --cov=. --cov-report=term --cov-report=html .
+	ENV_FILE=tmpl.env pytest --cov=. --cov-report=term --cov-report=html .
 
