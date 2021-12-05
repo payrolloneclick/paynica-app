@@ -28,11 +28,6 @@ async def signup_create_inactive_user(
         },
     )
     assert response.status_code == 200, response.text
-    user_data = response.json()
-    for field in ("pk", "email", "phone", "first_name", "last_name"):
-        assert field in user_data, field
-
-    return user_data
 
 
 async def signup_verify_email(async_client: AsyncClient, email: str) -> dict:
@@ -43,12 +38,10 @@ async def signup_verify_email(async_client: AsyncClient, email: str) -> dict:
         },
     )
     assert response.status_code == 200, response.text
-    user_data = response.json()
-    for field in ("pk", "email", "phone", "first_name", "last_name"):
-        assert field in user_data, field
 
     async with bus.uow:
-        db_user = await bus.uow.users.get(pk=uuid.UUID(user_data["pk"]))
+        db_users = await bus.uow.users.all()
+        db_user = db_users[-1]
     assert not db_user.is_email_verified
     email_code = db_user.email_code
     response = await async_client.post(
@@ -58,14 +51,10 @@ async def signup_verify_email(async_client: AsyncClient, email: str) -> dict:
         },
     )
     assert response.status_code == 200, response.text
-    user_data = response.json()
-    for field in ("pk", "email", "phone", "first_name", "last_name"):
-        assert field in user_data, field
-
     async with bus.uow:
-        db_user = await bus.uow.users.get(pk=uuid.UUID(user_data["pk"]))
+        db_users = await bus.uow.users.all()
+        db_user = db_users[-1]
     assert db_user.is_email_verified
-    return user_data
 
 
 async def signup_verify_phone(async_client: AsyncClient, phone: str) -> dict:
@@ -76,12 +65,10 @@ async def signup_verify_phone(async_client: AsyncClient, phone: str) -> dict:
         },
     )
     assert response.status_code == 200, response.text
-    user_data = response.json()
-    for field in ("pk", "email", "phone", "first_name", "last_name"):
-        assert field in user_data, field
 
     async with bus.uow:
-        db_user = await bus.uow.users.get(pk=uuid.UUID(user_data["pk"]))
+        db_users = await bus.uow.users.all()
+        db_user = db_users[-1]
     assert not db_user.is_phone_verified
     phone_code = db_user.phone_code
     response = await async_client.post(
@@ -91,20 +78,14 @@ async def signup_verify_phone(async_client: AsyncClient, phone: str) -> dict:
         },
     )
     assert response.status_code == 200, response.text
-    user_data = response.json()
-    for field in ("pk", "email", "phone", "first_name", "last_name"):
-        assert field in user_data, field
 
     async with bus.uow:
-        db_user = await bus.uow.users.get(pk=uuid.UUID(user_data["pk"]))
+        db_users = await bus.uow.users.all()
+        db_user = db_users[-1]
     assert db_user.is_phone_verified
-    return user_data
 
 
 async def signin_generate_access_token(async_client: AsyncClient, email: str, password: str) -> dict:
-    response = await signup_create_inactive_user(async_client, "test@test.com", "password")
-    response = await signup_verify_email(async_client, response["email"])
-    response = await signup_verify_phone(async_client, response["phone"])
     response = await async_client.post(
         "/users/generate-access-token",
         json={
@@ -122,7 +103,7 @@ async def signin_generate_access_token(async_client: AsyncClient, email: str, pa
     async with bus.uow:
         user = await bus.uow.users.get(pk=uuid.UUID(decoded_token_data["user_pk"]))
     assert user.email == email
-    assert user.verify_password(password)
+    assert await user.verify_password(password)
     assert decoded_token_data["refresh_token"] == token_data["refresh_token"]
     assert decoded_token_data["access_token_expired_at"] == token_data["access_token_expired_at"]
     assert decoded_token_data["refresh_token_expired_at"] == token_data["refresh_token_expired_at"]
@@ -145,23 +126,58 @@ async def signin_refresh_access_token(async_client: AsyncClient, email: str, pas
     async with bus.uow:
         user = await bus.uow.users.get(pk=uuid.UUID(decoded_token_data["user_pk"]))
     assert user.email == email
-    assert user.verify_password(password)
+    assert await user.verify_password(password)
     assert decoded_token_data["access_token_expired_at"] == token_data["access_token_expired_at"]
     assert decoded_token_data["refresh_token"] == old_token_data["refresh_token"]
     assert decoded_token_data["refresh_token_expired_at"] == old_token_data["refresh_token_expired_at"]
     return token_data
 
 
-async def get_profile(async_client: AsyncClient, access_token: str) -> dict:
-    response = await async_client.get(
-        "/users/profile",
-        headers = {
-            'Authorization': 'Bearer {}'.format(access_token)
-        }
-    )
+async def get_profile(async_client: AsyncClient, email: str, password: str) -> dict:
+    response = await signin_generate_access_token(async_client, email, password)
+    access_token = response["access_token"]
+    response = await async_client.get("/users/profile", headers={"Authorization": "Bearer {}".format(access_token)})
     assert response.status_code == 200, response.text
     user_data = response.json()
     for field in ("pk", "email", "phone", "first_name", "last_name"):
         assert field in user_data, field
 
     return user_data
+
+
+async def reset_password(
+    async_client: AsyncClient,
+    email: str,
+    old_password: str,
+    new_password: str,
+) -> dict:
+    response = await async_client.post(
+        "/users/send-password-code",
+        json={
+            "email": email,
+        },
+    )
+    assert response.status_code == 200, response.text
+    async with bus.uow:
+        db_users = await bus.uow.users.all()
+        db_user = db_users[-1]
+
+    assert await db_user.verify_password(old_password)
+    assert not await db_user.verify_password(new_password)
+    password_code = db_user.password_code
+    response = await async_client.post(
+        "/users/reset-password",
+        json={
+            "password_code": password_code,
+            "password": new_password,
+            "repeat_password": new_password,
+        },
+    )
+    assert response.status_code == 200, response.text
+
+    async with bus.uow:
+        db_users = await bus.uow.users.all()
+        db_user = db_users[-1]
+    assert not await db_user.verify_password(old_password)
+    assert await db_user.verify_password(new_password)
+    return db_user

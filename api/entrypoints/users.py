@@ -47,16 +47,15 @@ async def refresh_access_token(
     return RefreshAccessTokenResponse(**result.dict())
 
 
-@router.post("/create-inactive-user", response_model=UserResponse)
+@router.post("/create-inactive-user")
 async def create_inactive_user(
     command: CreateUserCommand,
 ):
     """Create inactive user."""
-    result = await bus.handler(command)
-    return UserResponse(**result.dict())
+    await bus.handler(command)
 
 
-@router.post("/send-email-code", response_model=UserResponse)
+@router.post("/send-email-code")
 async def send_email_code(
     command: GenerateEmailCodeCommand,
     background_tasks: BackgroundTasks,
@@ -65,19 +64,17 @@ async def send_email_code(
     result = await bus.handler(command)
     send_command = SendEmailCodeByEmailCommand(user=result)
     background_tasks.add_task(bus.handler, send_command)
-    return UserResponse(**result.dict())
 
 
-@router.post("/verify-email", response_model=UserResponse)
+@router.post("/verify-email")
 async def verify_email(
     command: VerifyEmailCodeCommand,
 ):
     """Verify email."""
-    result = await bus.handler(command)
-    return UserResponse(**result.dict())
+    await bus.handler(command)
 
 
-@router.post("/send-phone-code", response_model=UserResponse)
+@router.post("/send-phone-code")
 async def send_phone_code(
     command: GeneratePhoneCodeCommand,
     background_tasks: BackgroundTasks,
@@ -86,19 +83,17 @@ async def send_phone_code(
     result = await bus.handler(command)
     send_command = SendPhoneCodeBySmsCommand(user=result)
     background_tasks.add_task(bus.handler, send_command)
-    return UserResponse(**result.dict())
 
 
-@router.post("/verify-phone", response_model=UserResponse)
+@router.post("/verify-phone")
 async def verify_phone(
     command: VerifyPhoneCodeCommand,
 ):
     """Verify phone."""
-    result = await bus.handler(command)
-    return UserResponse(**result.dict())
+    await bus.handler(command)
 
 
-@router.post("/send-password-code", response_model=UserResponse)
+@router.post("/send-password-code")
 async def send_password_code(
     command: GenerateResetPasswordCodeCommand,
     background_tasks: BackgroundTasks,
@@ -107,16 +102,14 @@ async def send_password_code(
     result = await bus.handler(command)
     send_command = SendResetPasswordCodeByEmailCommand(user=result)
     background_tasks.add_task(bus.handler, send_command)
-    return UserResponse(**result.dict())
 
 
-@router.post("/reset-password", response_model=UserResponse)
+@router.post("/reset-password")
 async def reset_password(
     command: ResetPasswordCommand,
 ):
     """Verify password code and reset password."""
-    result = await bus.handler(command)
-    return UserResponse(**result.dict())
+    await bus.handler(command)
 
 
 @router.get("/profile", response_model=UserResponse)

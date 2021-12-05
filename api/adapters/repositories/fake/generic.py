@@ -36,7 +36,7 @@ class AbstractFakeRepository(AbstractRepository):
         return [o for o in objs]
 
     async def all(self) -> List[BaseModel]:
-        return self.session.objects.values()
+        return [o for o in self.session.objects.values()]
 
     async def update(self, obj: BaseModel) -> None:
         if obj.pk not in self.session.objects:

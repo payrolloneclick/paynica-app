@@ -47,3 +47,6 @@ class User(AbstractModel):
 
     async def randomly_set_email_code(self, length: int = 16) -> None:
         self.email_code = secrets.token_hex(length)
+
+    async def randomly_set_password_code(self, length: int = 16) -> None:
+        self.password_code = secrets.token_hex(length)
