@@ -4,6 +4,7 @@ from starlette.responses import JSONResponse
 
 from adapters.repositories.exceptions import ObjectDoesNotExist
 from bootstrap import bus
+from entrypoints.exceptions import NotAuthorizedException
 from entrypoints.index import router as index_router
 from entrypoints.operations import router as operations_router
 from entrypoints.users import router as users_router
@@ -30,6 +31,11 @@ async def does_not_exist_callback(request: Request, exc: ObjectDoesNotExist):
 @app.exception_handler(PermissionDeniedException)
 async def permission_denied_callback(request: Request, exc: PermissionDeniedException):
     return JSONResponse({"detail": exc.detail}, status_code=503)
+
+
+@app.exception_handler(NotAuthorizedException)
+async def not_authorized_callback(request: Request, exc: NotAuthorizedException):
+    return JSONResponse({"detail": exc.detail}, status_code=401)
 
 
 app.include_router(index_router)
