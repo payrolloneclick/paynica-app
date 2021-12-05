@@ -21,5 +21,6 @@ $ pip install -r requirements/dev.txt
 
 - Run dev server
 ```sh
+$ cp tmpl.env .env
 $ make start
 ```
