@@ -16,13 +16,16 @@ from service_layer.unit_of_work.generic import AbstractUnitOfWork
 from .generic import AbstractMessageBus
 
 COMMANDS = {
+    # sign in process
+    users_commands.GenerateAccessTokenCommand: users_handlers.generate_access_token_handler,
+    users_commands.RefreshAccessTokenCommand: users_handlers.refresh_access_token_handler,
     # sign up process
     users_commands.CreateUserCommand: users_handlers.create_user_handler,
-    # email verification and user actvation
+    # email verification and user activation
     users_commands.GenerateEmailCodeCommand: users_handlers.generate_email_code_handler,
     users_commands.SendEmailCodeByEmailCommand: users_handlers.send_email_code_by_email_handler,
     users_commands.VerifyEmailCodeCommand: users_handlers.verify_email_code_handler,
-    # phone verification and user actvation
+    # phone verification and user activation
     users_commands.GeneratePhoneCodeCommand: users_handlers.generate_phone_code_handler,
     users_commands.SendPhoneCodeBySmsCommand: users_handlers.send_phone_code_by_sms_handler,
     users_commands.VerifyPhoneCodeCommand: users_handlers.verify_phone_code_handler,
@@ -48,6 +51,8 @@ COMMANDS = {
     operations_commands.RetrieveOperationCommand: operations_handlers.retrieve_operation_handler,
 }
 
+EVENTS = {}
+
 
 def filter_dependencies(handler, dependencies):
     params = inspect.signature(handler).parameters
@@ -66,9 +71,15 @@ class MessageBus(AbstractMessageBus):
         self.sms_adapter = sms_adapter
         self.email_adapter = email_adapter
 
+    async def clean(self) -> None:
+        await self.uow.clean()
+        await self.sms_adapter.clean()
+        await self.email_adapter.clean()
+
     async def handler(self, message: AbstractMessage, current_user_pk: Optional[UUID4] = None) -> AbstractReponse:
         message_type = type(message)
-        handler_fn = COMMANDS.get(message_type)
+        handlers = COMMANDS
+        handler_fn = handlers.get(message_type)
         if not handler_fn:
             raise Exception
         return await handler_fn(

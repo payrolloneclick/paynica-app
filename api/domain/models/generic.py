@@ -7,5 +7,6 @@ from pydantic.types import UUID4
 
 class AbstractModel(BaseModel):
     pk: UUID4
+
     created_date: Optional[datetime]
     updated_date: Optional[datetime]

@@ -7,6 +7,10 @@ class AbstractSession(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
+    async def clean(self) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
     async def commit(self) -> None:
         raise NotImplementedError
 

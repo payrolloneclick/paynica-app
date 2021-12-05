@@ -14,6 +14,10 @@ class AbstractUnitOfWork(abc.ABC):
         await self.rollback()
 
     @abc.abstractmethod
+    async def clean(self):
+        raise NotImplementedError
+
+    @abc.abstractmethod
     async def commit(self):
         raise NotImplementedError
 

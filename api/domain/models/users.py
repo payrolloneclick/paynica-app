@@ -12,6 +12,7 @@ from .generic import AbstractModel
 class User(AbstractModel):
     email: str
     phone: str
+
     first_name: str
     last_name: str
     password: Optional[str]  # we store hash of password
@@ -34,7 +35,7 @@ class User(AbstractModel):
         self.password = f"{salt.hex()}${password_hash.hex()}"
 
     async def verify_password(self, password: str) -> bool:
-        if not self.password_hash:
+        if not self.password:
             return False
         salt, db_password_hash = self.password.split("$")
         password_hash = await self._get_password_hash(password, bytes.fromhex(salt))

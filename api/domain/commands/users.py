@@ -9,6 +9,15 @@ from ..validations import validate_email, validate_phone
 from .generic import AbstractCommand
 
 
+class GenerateAccessTokenCommand(AbstractCommand):
+    email: str
+    password: str
+
+
+class RefreshAccessTokenCommand(AbstractCommand):
+    refresh_token: str
+
+
 class CreateUserCommand(AbstractCommand):
     email: str
     phone: str

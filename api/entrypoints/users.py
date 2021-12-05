@@ -5,9 +5,11 @@ from bootstrap import bus
 from domain.commands.users import (
     CreateUserCommand,
     DeleteUserCommand,
+    GenerateAccessTokenCommand,
     GenerateEmailCodeCommand,
     GeneratePhoneCodeCommand,
     GenerateResetPasswordCodeCommand,
+    RefreshAccessTokenCommand,
     ResetPasswordCommand,
     RetrieveUserCommand,
     SendEmailCodeByEmailCommand,
@@ -17,7 +19,7 @@ from domain.commands.users import (
     VerifyEmailCodeCommand,
     VerifyPhoneCodeCommand,
 )
-from domain.responses.users import UserResponse
+from domain.responses.users import GenerateAccessTokenResponse, RefreshAccessTokenResponse, UserResponse
 
 from .dependencies import get_current_user_pk
 
@@ -25,6 +27,24 @@ router = APIRouter(
     prefix="/users",
     tags=["users"],
 )
+
+
+@router.post("/generate-access-token", response_model=GenerateAccessTokenResponse)
+async def generate_access_token(
+    command: GenerateAccessTokenCommand,
+):
+    """Generate access token."""
+    result = await bus.handler(command)
+    return GenerateAccessTokenResponse(**result.dict())
+
+
+@router.post("/refresh-access-token", response_model=RefreshAccessTokenResponse)
+async def refresh_access_token(
+    command: RefreshAccessTokenCommand,
+):
+    """Refresh access token."""
+    result = await bus.handler(command)
+    return RefreshAccessTokenResponse(**result.dict())
 
 
 @router.post("/create-inactive-user", response_model=UserResponse)

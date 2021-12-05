@@ -1,20 +1,6 @@
-from .generic import AbstractSession
+from .fake import FakeSession
 
 
 # TODO
-class DBSession(AbstractSession):
-    def __init__(self, uri: str) -> None:
-        self.uri = uri
-        self.objects = {}
-
-    async def open(self) -> None:
-        pass
-
-    async def commit(self) -> None:
-        pass
-
-    async def rollback(self) -> None:
-        pass
-
-    async def close(self) -> None:
-        pass
+class DBSession(FakeSession):
+    pass

@@ -32,5 +32,5 @@ lint:
 
 .PHONY: test
 test:
-	pytest --cov=. --cov-report=term --cov-report=html .
+	TEST_ENV=true pytest --cov=. --cov-report=term --cov-report=html .
 

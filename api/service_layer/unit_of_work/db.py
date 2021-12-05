@@ -17,6 +17,9 @@ class DBUnitOfWork(AbstractUnitOfWork):
     async def __aexit__(self, *args, **kwargs):
         await super().__aexit__(*args, **kwargs)
 
+    async def clean(self):
+        await self.session.clean()
+
     async def commit(self):
         await self.session.commit()
 

@@ -1,7 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 from uuid import uuid4
 
+import jwt
 from pydantic.types import UUID4
 
 from adapters.email.email import EmailAdapter
@@ -9,9 +10,11 @@ from adapters.sms.sms import SmsAdapter
 from domain.commands.users import (
     CreateUserCommand,
     DeleteUserCommand,
+    GenerateAccessTokenCommand,
     GenerateEmailCodeCommand,
     GeneratePhoneCodeCommand,
     GenerateResetPasswordCodeCommand,
+    RefreshAccessTokenCommand,
     ResetPasswordCommand,
     RetrieveUserCommand,
     SendEmailCodeByEmailCommand,
@@ -22,9 +25,83 @@ from domain.commands.users import (
     VerifyPhoneCodeCommand,
 )
 from domain.models.users import User
+from domain.responses.users import GenerateAccessTokenResponse, RefreshAccessTokenResponse
 from service_layer.unit_of_work.db import DBUnitOfWork
+from settings import JWT_ACCESS_TOKEN_EXPIRED_AT, JWT_REFRESH_TOKEN_EXPIRED_AT, JWT_SECRET_KEY
 
 from ..exceptions import PermissionDeniedException
+
+
+async def generate_access_token_handler(
+    message: GenerateAccessTokenCommand,
+    uow: Optional[DBUnitOfWork] = None,
+) -> GenerateAccessTokenResponse:
+    async with uow:
+        user = await uow.users.get(email=message.email)
+        if not await user.verify_password(message.password):
+            raise PermissionDeniedException("Invalid credentials")
+
+    now = datetime.utcnow()
+    refresh_token_expired_at = now + timedelta(seconds=JWT_REFRESH_TOKEN_EXPIRED_AT)
+    refresh_token = jwt.encode(
+        {
+            "user_pk": str(user.pk),
+            "refresh_token_expired_at": refresh_token_expired_at.isoformat(),
+        },
+        JWT_SECRET_KEY,
+        algorithm="HS256",
+    )
+    access_token_expired_at = now + timedelta(seconds=JWT_ACCESS_TOKEN_EXPIRED_AT)
+    access_token = jwt.encode(
+        {
+            "user_pk": str(user.pk),
+            "access_token_expired_at": access_token_expired_at.isoformat(),
+            "refresh_token": refresh_token,
+            "refresh_token_expired_at": refresh_token_expired_at.isoformat(),
+        },
+        JWT_SECRET_KEY,
+        algorithm="HS256",
+    )
+    return GenerateAccessTokenResponse(
+        access_token=access_token,
+        access_token_expired_at=access_token_expired_at,
+        refresh_token=refresh_token,
+        refresh_token_expired_at=refresh_token_expired_at,
+    )
+
+
+async def refresh_access_token_handler(
+    message: RefreshAccessTokenCommand,
+    uow: Optional[DBUnitOfWork] = None,
+) -> RefreshAccessTokenResponse:
+    try:
+        decoded_refresh_token = jwt.decode(message.refresh_token, JWT_SECRET_KEY, algorithms=["HS256"])
+    except jwt.PyJWTError:
+        raise PermissionDeniedException("Invalid refresh token")
+    refresh_token_expired_at = decoded_refresh_token.get("refresh_token_expired_at")
+    user_pk = decoded_refresh_token.get("user_pk")
+    if not refresh_token_expired_at or not user_pk:
+        raise PermissionDeniedException("Invalid payload for refresh token")
+    expired_at = datetime.fromisoformat(refresh_token_expired_at)
+    now = datetime.utcnow()
+    if expired_at < now:
+        raise PermissionDeniedException("Expired refresh token")
+
+    access_token_expired_at = now + timedelta(seconds=JWT_ACCESS_TOKEN_EXPIRED_AT)
+    access_token = jwt.encode(
+        {
+            "user_pk": user_pk,
+            "access_token_expired_at": access_token_expired_at.isoformat(),
+            "refresh_token": message.refresh_token,
+            "refresh_token_expired_at": refresh_token_expired_at,
+        },
+        JWT_SECRET_KEY,
+        algorithm="HS256",
+    )
+    return RefreshAccessTokenResponse(
+        access_token=access_token,
+        access_token_expired_at=access_token_expired_at,
+    )
 
 
 async def create_user_handler(

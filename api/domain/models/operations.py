@@ -21,6 +21,7 @@ class Country(str, Enum):
 
 class Account(AbstractModel):
     user: User
+
     currency: Currency
     country_alpha3: Country
 

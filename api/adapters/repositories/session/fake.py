@@ -9,6 +9,9 @@ class FakeSession(AbstractSession):
     async def open(self) -> None:
         pass
 
+    async def clean(self) -> None:
+        self.objects = {}
+
     async def commit(self) -> None:
         pass
 
