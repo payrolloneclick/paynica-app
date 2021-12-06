@@ -1,15 +1,17 @@
 # Paynica
 
 Dev backend stack:
-
 - fastapi
 
-Dev frontend stack:
+Dev web stack:
+- react
 
-- unknown
+Dev mobile stack:
+- react native
 
+## API Server
 
-## How to run API server locally
+### Install dependencies
 
 - Install dependencies
 ```sh
@@ -17,10 +19,24 @@ $ python3 -m venv .venv
 $ source .venv/bin/activate
 $ pip install --upgrade pip
 $ pip install -r requirements/dev.txt
+$ cp tmpl.env .env
 ```
 
-- Run dev server
+### Run API server locally
+
 ```sh
-$ cp tmpl.env .env
 $ make start
+```
+
+### Run tests locally
+
+```sh
+$ make test
+```
+
+### Run/Fix linters locally
+
+```sh
+$ make lint
+$ make fix
 ```
