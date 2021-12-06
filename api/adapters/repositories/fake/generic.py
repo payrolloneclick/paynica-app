@@ -39,7 +39,7 @@ class AbstractFakeRepository(AbstractRepository):
         objs = await self.filter(**kwargs)
         return len(objs)
 
-    async def exist(self, **kwargs) -> bool:
+    async def exists(self, **kwargs) -> bool:
         count = await self.count(**kwargs)
         return count > 0
 

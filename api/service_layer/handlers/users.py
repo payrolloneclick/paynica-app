@@ -118,9 +118,9 @@ async def create_user_handler(
     )
     await user.set_password(message.password)
     async with uow:
-        if message.email and await uow.users.exist(email=message.email):
+        if message.email and await uow.users.exists(email=message.email):
             raise ValidationException(detail="User with this email already exists")
-        if message.phone and await uow.users.exist(phone=message.phone):
+        if message.phone and await uow.users.exists(phone=message.phone):
             raise ValidationException(detail="User with this phone already exists")
         await uow.users.add(user)
         await uow.commit()
@@ -252,13 +252,13 @@ async def update_user_handler(
         if message.last_name:
             user.last_name = message.last_name
         if message.email:
-            if await uow.users.exist(email=message.email):
+            if await uow.users.exists(email=message.email):
                 raise ValidationException(detail="User with this email already exists")
             if message.email != user.email:
                 user.is_email_verified = False
             user.email = message.email
         if message.phone:
-            if await uow.users.exist(phone=message.phone):
+            if await uow.users.exists(phone=message.phone):
                 raise ValidationException(detail="User with this phone already exists")
             if message.phone != user.phone:
                 user.is_phone_verified = False
