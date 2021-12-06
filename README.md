@@ -13,7 +13,6 @@ Dev mobile stack:
 
 ### Install dependencies
 
-- Install dependencies
 ```sh
 $ python3 -m venv .venv
 $ source .venv/bin/activate
