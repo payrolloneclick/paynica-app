@@ -20,7 +20,7 @@ class RefreshAccessTokenCommand(AbstractCommand):
 
 class CreateUserCommand(AbstractCommand):
     email: constr(strip_whitespace=True, to_lower=True, regex=EMAIL_REGEXP)
-    phone: constr(strip_whitespace=True, to_lower=True)
+    phone: constr(strip_whitespace=True, to_lower=True, min_length=1)
     first_name: constr(strip_whitespace=True)
     last_name: constr(strip_whitespace=True)
     password: constr(strip_whitespace=True, min_length=8)
@@ -43,7 +43,7 @@ class RetrieveUserCommand(AbstractCommand):
 
 class UpdateUserCommand(AbstractCommand):
     email: Optional[constr(strip_whitespace=True, to_lower=True, regex=EMAIL_REGEXP)]
-    phone: Optional[constr(strip_whitespace=True, to_lower=True)]
+    phone: Optional[constr(strip_whitespace=True, to_lower=True, min_length=1)]
     first_name: Optional[constr(strip_whitespace=True)]
     last_name: Optional[constr(strip_whitespace=True)]
     password: Optional[constr(strip_whitespace=True, min_length=8)]
@@ -88,7 +88,7 @@ class VerifyEmailCodeCommand(AbstractCommand):
 
 
 class GeneratePhoneCodeCommand(AbstractCommand):
-    phone: constr(strip_whitespace=True, to_lower=True)
+    phone: constr(strip_whitespace=True, to_lower=True, min_length=1)
 
     @validator("phone")
     def phone_validator(cls, v):

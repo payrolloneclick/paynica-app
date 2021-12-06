@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Optional
-from uuid import uuid4, UUID
+from uuid import UUID, uuid4
 
 import jwt
 from pydantic.types import UUID4
@@ -143,6 +143,8 @@ async def generate_email_code_handler(
 ) -> User:
     async with uow:
         user = await uow.users.get(email=message.email)
+        if user.is_email_verified:
+            raise ValidationException("Email is already verified")
         await user.randomly_set_email_code()
         user.updated_date = datetime.now()
         await uow.users.update(user)
@@ -181,6 +183,8 @@ async def generate_phone_code_handler(
 ) -> User:
     async with uow:
         user = await uow.users.get(phone=message.phone)
+        if user.is_phone_verified:
+            raise ValidationException("Phone is already verified")
         await user.randomly_set_phone_code()
         user.updated_date = datetime.now()
         await uow.users.update(user)
