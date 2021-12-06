@@ -52,6 +52,102 @@ async def test_signin_reset_password(async_client):
 
 
 @pytest.mark.asyncio
+async def test_signin_reset_password_4xx(async_client):
+    await bus.clean()
+    await signup_create_inactive_user(async_client, "test@test.com", "password", phone="+1 800 444 4444")
+    await signup_verify_email(async_client, "test@test.com")
+    response = await async_client.post(
+        "/users/send-password-code",
+        json={
+            "email": "invalid_email",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/send-password-code",
+        json={},
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/send-password-code",
+        json={
+            "email": "test@test.com",
+        },
+    )
+    assert response.status_code == 200, response.text
+    async with bus.uow:
+        db_users = await bus.uow.users.all()
+        db_user = db_users[-1]
+
+    password_code = db_user.password_code
+    response = await async_client.post(
+        "/users/reset-password",
+        json={
+            "password_code": "invalid_code",
+            "password": "new_password",
+            "repeat_password": "new_password",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/reset-password",
+        json={
+            "password_code": "a" * 16,
+            "password": "new_password",
+            "repeat_password": "new_password",
+        },
+    )
+    assert response.status_code == 404, response.text
+
+    password_code = db_user.password_code
+    response = await async_client.post(
+        "/users/reset-password",
+        json={
+            "password_code": password_code,
+            "password": "new_password",
+            "repeat_password": "new_invalid_password",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    password_code = db_user.password_code
+    response = await async_client.post(
+        "/users/reset-password",
+        json={
+            "password_code": password_code,
+            "password": "",
+            "repeat_password": "",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    password_code = db_user.password_code
+    response = await async_client.post(
+        "/users/reset-password",
+        json={
+            "password_code": password_code,
+            "password": "new_password",
+            "repeat_password": "",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    password_code = db_user.password_code
+    response = await async_client.post(
+        "/users/reset-password",
+        json={
+            "password_code": password_code,
+            "password": "",
+            "repeat_password": "new_password",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+
+@pytest.mark.asyncio
 async def test_get_profile(async_client):
     await bus.clean()
     await signup_create_inactive_user(async_client, "test@test.com", "password")

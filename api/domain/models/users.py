@@ -6,21 +6,24 @@ import string
 from datetime import datetime
 from typing import Optional
 
+from pydantic.types import constr
+
+from ..validations import EMAIL_REGEXP
 from .generic import AbstractModel
 
 
 class User(AbstractModel):
-    email: str
-    phone: str
+    email: constr(strip_whitespace=True, to_lower=True, regex=EMAIL_REGEXP)
+    phone: constr(strip_whitespace=True, to_lower=True)
 
-    first_name: str
-    last_name: str
-    password: Optional[str]  # we store hash of password
+    first_name: constr(strip_whitespace=True)
+    last_name: constr(strip_whitespace=True)
+    password: Optional[constr(strip_whitespace=True)]  # we store hash of password
     last_login: Optional[datetime]
 
-    phone_code: Optional[str]
-    email_code: Optional[str]
-    password_code: Optional[str]
+    phone_code: Optional[constr(strip_whitespace=True, min_length=6)]
+    email_code: Optional[constr(strip_whitespace=True, min_length=16)]
+    password_code: Optional[constr(strip_whitespace=True, min_length=16)]
 
     is_phone_verified: Optional[bool] = False
     is_email_verified: Optional[bool] = False

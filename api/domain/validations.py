@@ -1,15 +1,9 @@
-import re
 from typing import Optional
 
 import phonenumbers
 
 
-def validate_email(email: Optional[str]) -> str:
-    if not email:
-        return email
-    if not re.search(r"^[\w\.\+\-]+\@[\w]+\.[a-z]{2,3}$", email):
-        raise ValueError("Invalid email.")
-    return email.lower()
+EMAIL_REGEXP = r"^[\w\.\+\-]+\@[\w]+\.[a-z]{2,3}$"
 
 
 def validate_phone(phone: Optional[str]) -> str:

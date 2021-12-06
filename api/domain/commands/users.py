@@ -1,40 +1,36 @@
 from typing import Optional
 
 from pydantic import validator
-from pydantic.types import UUID4
+from pydantic.types import UUID4, constr
 
 from domain.models.users import User
 
-from ..validations import validate_email, validate_phone
+from ..validations import EMAIL_REGEXP, validate_phone
 from .generic import AbstractCommand
 
 
 class GenerateAccessTokenCommand(AbstractCommand):
-    email: str
-    password: str
+    email: constr(strip_whitespace=True, to_lower=True, regex=EMAIL_REGEXP)
+    password: constr(strip_whitespace=True, min_length=8)
 
 
 class RefreshAccessTokenCommand(AbstractCommand):
-    refresh_token: str
+    refresh_token: constr(strip_whitespace=True)
 
 
 class CreateUserCommand(AbstractCommand):
-    email: str
-    phone: str
-    first_name: str
-    last_name: str
-    password: str
-    repeat_password: str
+    email: constr(strip_whitespace=True, to_lower=True, regex=EMAIL_REGEXP)
+    phone: constr(strip_whitespace=True, to_lower=True)
+    first_name: constr(strip_whitespace=True)
+    last_name: constr(strip_whitespace=True)
+    password: constr(strip_whitespace=True, min_length=8)
+    repeat_password: constr(strip_whitespace=True, min_length=8)
 
-    @validator("password")
-    def passwords_match(cls, v, values, **kwargs):
-        if "repeat_password" in values and v != values["repeat_password"]:
+    @validator("repeat_password")
+    def passwords_match(cls, v, values):
+        if "password" in values and v != values["password"]:
             raise ValueError("Passwords do not match")
         return v
-
-    @validator("email")
-    def email_validator(cls, v):
-        return validate_email(v)
 
     @validator("phone")
     def phone_validator(cls, v):
@@ -46,22 +42,18 @@ class RetrieveUserCommand(AbstractCommand):
 
 
 class UpdateUserCommand(AbstractCommand):
-    email: Optional[str]
-    phone: Optional[str]
-    first_name: Optional[str]
-    last_name: Optional[str]
-    password: Optional[str]
-    repeat_password: Optional[str]
+    email: Optional[constr(strip_whitespace=True, to_lower=True, regex=EMAIL_REGEXP)]
+    phone: Optional[constr(strip_whitespace=True, to_lower=True)]
+    first_name: Optional[constr(strip_whitespace=True)]
+    last_name: Optional[constr(strip_whitespace=True)]
+    password: Optional[constr(strip_whitespace=True, min_length=8)]
+    repeat_password: Optional[constr(strip_whitespace=True, min_length=8)]
 
     @validator("repeat_password")
-    def passwords_match(cls, v, values, **kwargs):
+    def passwords_match(cls, v, values):
         if "password" in values and v != values["password"]:
             raise ValueError("Passwords do not match")
         return v
-
-    @validator("email")
-    def email_validator(cls, v):
-        return validate_email(v)
 
     @validator("phone")
     def phone_validator(cls, v):
@@ -73,22 +65,17 @@ class DeleteUserCommand(AbstractCommand):
 
 
 class UserChangePasswordCommand(AbstractCommand):
-    password: str
-    repeat_password: str
+    password: constr(strip_whitespace=True, min_length=8)
+    repeat_password: constr(strip_whitespace=True, min_length=8)
 
-    @validator("password")
-    def passwords_match(cls, v, values, **kwargs):
-        if "repeat_password" in values and v != values["repeat_password"]:
+    @validator("repeat_password")
+    def passwords_match(cls, v, values):
+        if "password" in values and v != values["password"]:
             raise ValueError("Passwords do not match")
         return v
 
-
 class GenerateEmailCodeCommand(AbstractCommand):
-    email: str
-
-    @validator("email")
-    def email_validator(cls, v):
-        return validate_email(v)
+    email: constr(strip_whitespace=True, to_lower=True, regex=EMAIL_REGEXP)
 
 
 class SendEmailCodeByEmailCommand(AbstractCommand):
@@ -96,11 +83,11 @@ class SendEmailCodeByEmailCommand(AbstractCommand):
 
 
 class VerifyEmailCodeCommand(AbstractCommand):
-    email_code: str
+    email_code: constr(strip_whitespace=True, min_length=16)
 
 
 class GeneratePhoneCodeCommand(AbstractCommand):
-    phone: str
+    phone: constr(strip_whitespace=True, to_lower=True)
 
     @validator("phone")
     def phone_validator(cls, v):
@@ -112,7 +99,7 @@ class SendPhoneCodeBySmsCommand(AbstractCommand):
 
 
 class VerifyPhoneCodeCommand(AbstractCommand):
-    phone_code: str
+    phone_code: constr(strip_whitespace=True, min_length=6)
 
 
 class GenerateResetPasswordCodeCommand(GenerateEmailCodeCommand):
@@ -124,4 +111,4 @@ class SendResetPasswordCodeByEmailCommand(SendEmailCodeByEmailCommand):
 
 
 class ResetPasswordCommand(UserChangePasswordCommand):
-    password_code: str
+    password_code: constr(strip_whitespace=True, min_length=16)
