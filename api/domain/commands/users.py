@@ -15,7 +15,7 @@ class GenerateAccessTokenCommand(AbstractCommand):
 
 
 class RefreshAccessTokenCommand(AbstractCommand):
-    refresh_token: constr(strip_whitespace=True)
+    refresh_token: constr(strip_whitespace=True, min_length=1)
 
 
 class CreateUserCommand(AbstractCommand):
@@ -73,6 +73,7 @@ class UserChangePasswordCommand(AbstractCommand):
         if "password" in values and v != values["password"]:
             raise ValueError("Passwords do not match")
         return v
+
 
 class GenerateEmailCodeCommand(AbstractCommand):
     email: constr(strip_whitespace=True, to_lower=True, regex=EMAIL_REGEXP)

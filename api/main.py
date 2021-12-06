@@ -8,7 +8,7 @@ from entrypoints.exceptions import NotAuthorizedException
 from entrypoints.index import router as index_router
 from entrypoints.operations import router as operations_router
 from entrypoints.users import router as users_router
-from service_layer.exceptions import PermissionDeniedException
+from service_layer.exceptions import PermissionDeniedException, ValidationException
 
 app = FastAPI(title="Paynica", version="0.0.1")
 
@@ -30,12 +30,17 @@ async def does_not_exist_callback(request: Request, exc: ObjectDoesNotExist):
 
 @app.exception_handler(PermissionDeniedException)
 async def permission_denied_callback(request: Request, exc: PermissionDeniedException):
-    return JSONResponse({"detail": exc.detail}, status_code=503)
+    return JSONResponse({"detail": exc.detail}, status_code=403)
 
 
 @app.exception_handler(NotAuthorizedException)
 async def not_authorized_callback(request: Request, exc: NotAuthorizedException):
     return JSONResponse({"detail": exc.detail}, status_code=401)
+
+
+@app.exception_handler(ValidationException)
+async def validation_callback(request: Request, exc: ValidationException):
+    return JSONResponse({"detail": exc.detail}, status_code=400)
 
 
 app.include_router(index_router)

@@ -35,6 +35,14 @@ class AbstractFakeRepository(AbstractRepository):
             objs = filter(lambda o: getattr(o, key) == kwargs[key], objs)
         return [o for o in objs]
 
+    async def count(self, **kwargs) -> int:
+        objs = await self.filter(**kwargs)
+        return len(objs)
+
+    async def exist(self, **kwargs) -> bool:
+        count = await self.count(**kwargs)
+        return count > 0
+
     async def all(self) -> List[BaseModel]:
         return [o for o in self.session.objects.values()]
 

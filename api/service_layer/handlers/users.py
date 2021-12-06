@@ -29,7 +29,7 @@ from domain.responses.users import GenerateAccessTokenResponse, RefreshAccessTok
 from service_layer.unit_of_work.db import DBUnitOfWork
 from settings import JWT_ACCESS_TOKEN_EXPIRED_AT, JWT_REFRESH_TOKEN_EXPIRED_AT, JWT_SECRET_KEY
 
-from ..exceptions import PermissionDeniedException
+from ..exceptions import PermissionDeniedException, ValidationException
 
 
 async def generate_access_token_handler(
@@ -118,6 +118,10 @@ async def create_user_handler(
     )
     await user.set_password(message.password)
     async with uow:
+        if message.email and await uow.users.exist(email=message.email):
+            raise ValidationException(detail="User with this email already exists")
+        if message.phone and await uow.users.exist(phone=message.phone):
+            raise ValidationException(detail="User with this phone already exists")
         await uow.users.add(user)
         await uow.commit()
     return user
@@ -248,10 +252,14 @@ async def update_user_handler(
         if message.last_name:
             user.last_name = message.last_name
         if message.email:
+            if await uow.users.exist(email=message.email):
+                raise ValidationException(detail="User with this email already exists")
             if message.email != user.email:
                 user.is_email_verified = False
             user.email = message.email
         if message.phone:
+            if await uow.users.exist(phone=message.phone):
+                raise ValidationException(detail="User with this phone already exists")
             if message.phone != user.phone:
                 user.is_phone_verified = False
             user.phone = message.phone

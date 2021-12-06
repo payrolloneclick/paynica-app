@@ -9,3 +9,7 @@ class ServiceException(Exception):
 
 class PermissionDeniedException(ServiceException):
     pass
+
+
+class ValidationException(ServiceException):
+    pass

@@ -2,7 +2,6 @@ from typing import Optional
 
 import phonenumbers
 
-
 EMAIL_REGEXP = r"^[\w\.\+\-]+\@[\w]+\.[a-z]{2,3}$"
 
 

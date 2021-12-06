@@ -24,6 +24,128 @@ async def test_signup(async_client):
 
 
 @pytest.mark.asyncio
+async def test_signup_4xx(async_client):
+    await bus.clean()
+    response = await async_client.post(
+        "/users/create-inactive-user",
+        json={},
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/create-inactive-user",
+        json={
+            "email": "test@test.com",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/create-inactive-user",
+        json={
+            "email": "test@test.com",
+            "phone": "+1 800 444 4444",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/create-inactive-user",
+        json={
+            "email": "test@test.com",
+            "phone": "+1 800 444 4444",
+            "first_name": "first_name",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/create-inactive-user",
+        json={
+            "email": "test@test.com",
+            "phone": "+1 800 444 4444",
+            "first_name": "first_name",
+            "last_name": "last_name",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/create-inactive-user",
+        json={
+            "email": "test@test.com",
+            "phone": "+1 800 444 4444",
+            "first_name": "first_name",
+            "last_name": "last_name",
+            "password": "password",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    data = {
+        "email": "test@test.com",
+        "phone": "+1 800 444 4444",
+        "first_name": "first_name",
+        "last_name": "last_name",
+        "password": "password",
+        "repeat_password": "password",
+    }
+    response = await async_client.post(
+        "/users/create-inactive-user",
+        json={
+            **data,
+            "email": "invalid_email",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/create-inactive-user",
+        json={
+            **data,
+            "phone": "invalid_phone",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/create-inactive-user",
+        json={
+            **data,
+            "repeat_password": "invalid_password",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/create-inactive-user",
+        json=data,
+    )
+    assert response.status_code == 200, response.text
+    assert response.json() is None
+
+    response = await async_client.post(
+        "/users/create-inactive-user",
+        json={
+            **data,
+            "phone": "+1 800 444 4441",
+        },
+    )
+    # email duplication
+    assert response.status_code == 400, response.text
+
+    response = await async_client.post(
+        "/users/create-inactive-user",
+        json={
+            **data,
+            "email": "test_new@test.com",
+        },
+    )
+    # phone duplication
+    assert response.status_code == 400, response.text
+
+
+@pytest.mark.asyncio
 async def test_generate_access_token(async_client):
     await bus.clean()
     await signup_create_inactive_user(async_client, "test@test.com", "password")
@@ -33,12 +155,114 @@ async def test_generate_access_token(async_client):
 
 
 @pytest.mark.asyncio
+async def test_generate_access_token_4xx(async_client):
+    await bus.clean()
+    await signup_create_inactive_user(async_client, "test@test.com", "password")
+    await signup_verify_email(async_client, "test@test.com")
+    response = await async_client.post(
+        "/users/generate-access-token",
+        json={},
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/generate-access-token",
+        json={
+            "email": "test@test.com",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/generate-access-token",
+        json={
+            "password": "password",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/generate-access-token",
+        json={
+            "email": "",
+            "password": "password",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/generate-access-token",
+        json={
+            "email": "test@test.com",
+            "password": "",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/generate-access-token",
+        json={
+            "email": "invalid",
+            "password": "password",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/generate-access-token",
+        json={
+            "email": "wrong@email.com",
+            "password": "password",
+        },
+    )
+    assert response.status_code == 404, response.text
+
+    response = await async_client.post(
+        "/users/generate-access-token",
+        json={
+            "email": "test@test.com",
+            "password": "wrong_password",
+        },
+    )
+    assert response.status_code == 403, response.text
+
+
+@pytest.mark.asyncio
 async def test_refresh_access_token(async_client):
     await bus.clean()
     await signup_create_inactive_user(async_client, "test@test.com", "password")
     await signup_verify_email(async_client, "test@test.com")
     response = await signin_refresh_access_token(async_client, "test@test.com", "password")
     assert "access_token" in response
+
+
+@pytest.mark.asyncio
+async def test_refresh_access_token_4xx(async_client):
+    await bus.clean()
+    await signup_create_inactive_user(async_client, "test@test.com", "password")
+    await signup_verify_email(async_client, "test@test.com")
+    await signin_generate_access_token(async_client, "test@test.com", "password")
+    response = await async_client.post(
+        "/users/refresh-access-token",
+        json={},
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/refresh-access-token",
+        json={
+            "refresh_token": "",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        "/users/refresh-access-token",
+        json={
+            "refresh_token": "invalid_token",
+        },
+    )
+    assert response.status_code == 403, response.text
 
 
 @pytest.mark.asyncio
@@ -255,6 +479,27 @@ async def test_update_profile_4xx(async_client):
         },
     )
     assert response.status_code == 422, response.text
+
+    await signup_create_inactive_user(async_client, "another_test@test.com", "password", phone="+1 800 444 4440")
+    response = await async_client.patch(
+        "/users/profile",
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={
+            **data,
+            "email": "another_test@test.com",
+        },
+    )
+    assert response.status_code == 400, response.text
+
+    response = await async_client.patch(
+        "/users/profile",
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={
+            **data,
+            "phone": "+1 800 444 4440",
+        },
+    )
+    assert response.status_code == 400, response.text
 
 
 @pytest.mark.asyncio
