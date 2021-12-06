@@ -1,5 +1,6 @@
-import pytest
 import uuid
+
+import pytest
 
 from domain.models.users import User
 
