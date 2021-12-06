@@ -133,18 +133,6 @@ async def signin_refresh_access_token(async_client: AsyncClient, email: str, pas
     return token_data
 
 
-async def get_profile(async_client: AsyncClient, email: str, password: str) -> dict:
-    response = await signin_generate_access_token(async_client, email, password)
-    access_token = response["access_token"]
-    response = await async_client.get("/users/profile", headers={"Authorization": "Bearer {}".format(access_token)})
-    assert response.status_code == 200, response.text
-    user_data = response.json()
-    for field in ("pk", "email", "phone", "first_name", "last_name"):
-        assert field in user_data, field
-
-    return user_data
-
-
 async def reset_password(
     async_client: AsyncClient,
     email: str,
@@ -181,3 +169,69 @@ async def reset_password(
     assert not await db_user.verify_password(old_password)
     assert await db_user.verify_password(new_password)
     return db_user
+
+
+async def get_profile(async_client: AsyncClient, email: str, password: str) -> dict:
+    response = await signin_generate_access_token(async_client, email, password)
+    access_token = response["access_token"]
+    response = await async_client.get("/users/profile", headers={"Authorization": "Bearer {}".format(access_token)})
+    assert response.status_code == 200, response.text
+    user_data = response.json()
+    for field in ("pk", "email", "phone", "first_name", "last_name"):
+        assert field in user_data, field
+
+    return user_data
+
+
+async def update_profile(async_client: AsyncClient, email: str, password: str, data: dict) -> dict:
+    response = await signin_generate_access_token(async_client, email, password)
+    access_token = response["access_token"]
+    response = await async_client.patch(
+        "/users/profile",
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={
+            "email": data.get("email"),
+            "phone": data.get("phone"),
+            "first_name": data.get("first_name"),
+            "last_name": data.get("last_name"),
+            "password": data.get("password"),
+            "repeat_password": data.get("repeat_password"),
+        },
+    )
+    assert response.status_code == 200, response.text
+    user_data = response.json()
+    for field in ("pk", "email", "phone", "first_name", "last_name"):
+        assert field in user_data, field
+
+    async with bus.uow:
+        db_user = await bus.uow.users.get(pk=uuid.UUID(user_data["pk"]))
+
+    if "email" in data:
+        assert not db_user.is_email_verified
+
+    if "phone" in data:
+        assert not db_user.is_phone_verified
+
+    for field in ("email", "phone", "first_name", "last_name", "password"):
+        if field in data and field != "password":
+            assert getattr(db_user, field) == data[field], data[field]
+        if field in data and field == "password":
+            assert await db_user.verify_password(data[field]), data[field]
+
+    return user_data
+
+
+async def delete_profile(async_client: AsyncClient, email: str, password: str) -> dict:
+    response = await signin_generate_access_token(async_client, email, password)
+    access_token = response["access_token"]
+    response = await async_client.delete("/users/profile", headers={"Authorization": "Bearer {}".format(access_token)})
+    assert response.status_code == 200, response.text
+    user_data = response.json()
+    for field in ("pk",):
+        assert field in user_data, field
+
+    async with bus.uow:
+        db_user = await bus.uow.users.filter(pk=uuid.UUID(user_data["pk"]))
+
+    assert len(db_user) == 0
+    return user_data

@@ -3,6 +3,7 @@ import pytest
 from bootstrap import bus
 
 from .scenarios import (
+    delete_profile,
     get_profile,
     reset_password,
     signin_generate_access_token,
@@ -10,6 +11,7 @@ from .scenarios import (
     signup_create_inactive_user,
     signup_verify_email,
     signup_verify_phone,
+    update_profile,
 )
 
 
@@ -56,3 +58,131 @@ async def test_get_profile(async_client):
     await signup_verify_email(async_client, "test@test.com")
     response = await get_profile(async_client, "test@test.com", "password")
     assert "pk" in response
+
+
+@pytest.mark.asyncio
+async def test_get_profile_4xx(async_client):
+    await bus.clean()
+    await signup_create_inactive_user(async_client, "test@test.com", "password")
+    await signup_verify_email(async_client, "test@test.com")
+
+    response = await async_client.get("/users/profile")
+    assert response.status_code == 403, response.text
+
+    response = await async_client.get(
+        "/users/profile", headers={"Authorization": "Bearer {}".format("invalid_access_token")}
+    )
+    assert response.status_code == 401, response.text
+
+
+@pytest.mark.asyncio
+async def test_update_profile(async_client):
+    await bus.clean()
+    await signup_create_inactive_user(async_client, "test@test.com", "password")
+    await signup_verify_email(async_client, "test@test.com")
+    await update_profile(
+        async_client,
+        "test@test.com",
+        "password",
+        {
+            "email": "new_test@test.com",
+            "phone": "+1 800 444 4441",
+            "first_name": "new_first_name",
+            "last_name": "new_last_name",
+            "password": "new_password",
+            "repeat_password": "new_password",
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_update_profile_4xx(async_client):
+    await bus.clean()
+    await signup_create_inactive_user(async_client, "test@test.com", "password")
+    await signup_verify_email(async_client, "test@test.com")
+
+    data = {
+        "email": "new_test@test.com",
+        "phone": "+1 800 444 4441",
+        "first_name": "new_first_name",
+        "last_name": "new_last_name",
+        "password": "new_password",
+        "repeat_password": "new_password",
+    }
+
+    response = await async_client.patch(
+        "/users/profile",
+        json=data,
+    )
+    assert response.status_code == 403, response.text
+
+    response = await async_client.patch(
+        "/users/profile",
+        headers={"Authorization": "Bearer {}".format("invalid_access_token")},
+        json=data,
+    )
+    assert response.status_code == 401, response.text
+
+    response = await signin_generate_access_token(async_client, "test@test.com", "password")
+    access_token = response["access_token"]
+    response = await async_client.patch(
+        "/users/profile",
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={
+            **data,
+            "email": "invalid_email",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await signin_generate_access_token(async_client, "test@test.com", "password")
+    access_token = response["access_token"]
+    response = await async_client.patch(
+        "/users/profile",
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={
+            **data,
+            "phone": "invalid_phone",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await signin_generate_access_token(async_client, "test@test.com", "password")
+    access_token = response["access_token"]
+    response = await async_client.patch(
+        "/users/profile",
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={
+            **data,
+            "password": "new_password",
+            "repeat_password": "invalid_password",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+
+@pytest.mark.asyncio
+async def test_delete_profile(async_client):
+    await bus.clean()
+    await signup_create_inactive_user(async_client, "test@test.com", "password")
+    await signup_verify_email(async_client, "test@test.com")
+    await delete_profile(
+        async_client,
+        "test@test.com",
+        "password",
+    )
+
+
+@pytest.mark.asyncio
+async def test_delete_profile_4xx(async_client):
+    await bus.clean()
+    await signup_create_inactive_user(async_client, "test@test.com", "password")
+    await signup_verify_email(async_client, "test@test.com")
+
+    response = await async_client.delete("/users/profile")
+    assert response.status_code == 403, response.text
+
+    response = await async_client.delete(
+        "/users/profile", headers={"Authorization": "Bearer {}".format("invalid_access_token")}
+    )
+    assert response.status_code == 401, response.text

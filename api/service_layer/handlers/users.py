@@ -248,8 +248,12 @@ async def update_user_handler(
         if message.last_name:
             user.last_name = message.last_name
         if message.email:
+            if message.email != user.email:
+                user.is_email_verified = False
             user.email = message.email
         if message.phone:
+            if message.phone != user.phone:
+                user.is_phone_verified = False
             user.phone = message.phone
         if message.password:
             await user.set_password(message.password)

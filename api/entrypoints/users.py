@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, Response
 from pydantic.types import UUID4
 
 from bootstrap import bus
@@ -31,10 +31,13 @@ router = APIRouter(
 
 @router.post("/generate-access-token", response_model=GenerateAccessTokenResponse)
 async def generate_access_token(
+    response: Response,
     command: GenerateAccessTokenCommand,
 ):
     """Generate access token."""
     result = await bus.handler(command)
+    response.set_cookie(key="access_token", value=f"Bearer {result.access_token}", httponly=True)
+    response.set_cookie(key="refresh_token", value=f"Bearer {result.refresh_token}", httponly=True)
     return GenerateAccessTokenResponse(**result.dict())
 
 

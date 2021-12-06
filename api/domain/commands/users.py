@@ -53,9 +53,9 @@ class UpdateUserCommand(AbstractCommand):
     password: Optional[str]
     repeat_password: Optional[str]
 
-    @validator("password")
+    @validator("repeat_password")
     def passwords_match(cls, v, values, **kwargs):
-        if "repeat_password" in values and v != values["repeat_password"]:
+        if "password" in values and v != values["password"]:
             raise ValueError("Passwords do not match")
         return v
 
