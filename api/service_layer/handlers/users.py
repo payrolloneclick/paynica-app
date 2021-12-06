@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Optional
-from uuid import uuid4
+from uuid import uuid4, UUID
 
 import jwt
 from pydantic.types import UUID4
@@ -51,6 +51,7 @@ async def generate_access_token_handler(
         JWT_SECRET_KEY,
         algorithm="HS256",
     )
+
     access_token_expired_at = now + timedelta(seconds=JWT_ACCESS_TOKEN_EXPIRED_AT)
     access_token = jwt.encode(
         {
@@ -62,6 +63,7 @@ async def generate_access_token_handler(
         JWT_SECRET_KEY,
         algorithm="HS256",
     )
+
     return GenerateAccessTokenResponse(
         access_token=access_token,
         access_token_expired_at=access_token_expired_at,
@@ -78,19 +80,27 @@ async def refresh_access_token_handler(
         decoded_refresh_token = jwt.decode(message.refresh_token, JWT_SECRET_KEY, algorithms=["HS256"])
     except jwt.PyJWTError:
         raise PermissionDeniedException("Invalid refresh token")
+
     refresh_token_expired_at = decoded_refresh_token.get("refresh_token_expired_at")
     user_pk = decoded_refresh_token.get("user_pk")
     if not refresh_token_expired_at or not user_pk:
         raise PermissionDeniedException("Invalid payload for refresh token")
+
     expired_at = datetime.fromisoformat(refresh_token_expired_at)
     now = datetime.utcnow()
     if expired_at < now:
         raise PermissionDeniedException("Expired refresh token")
 
+    async with uow:
+        user = await uow.users.get(pk=UUID(user_pk))
+        if not user.is_active:
+            raise PermissionDeniedException("Inactive user. Please finish sign up process.")
+        # TODO get user and salt/token from user to control jwt
+
     access_token_expired_at = now + timedelta(seconds=JWT_ACCESS_TOKEN_EXPIRED_AT)
     access_token = jwt.encode(
         {
-            "user_pk": user_pk,
+            "user_pk": str(user.pk),
             "access_token_expired_at": access_token_expired_at.isoformat(),
             "refresh_token": message.refresh_token,
             "refresh_token_expired_at": refresh_token_expired_at,
