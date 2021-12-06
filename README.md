@@ -17,8 +17,8 @@ Dev mobile stack:
 $ python3 -m venv .venv
 $ source .venv/bin/activate
 $ pip install --upgrade pip
-$ pip install -r requirements/dev.txt
 $ cp tmpl.env .env
+$ make install
 ```
 
 ### Run API server locally
