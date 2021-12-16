@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from domain.models.users import User
 
@@ -14,6 +14,9 @@ class UsersFakeRepository(AbstractFakeRepository):
 
     async def get(self, **kwargs) -> User:
         return await super().get(**kwargs)
+
+    async def first(self, **kwargs) -> Optional[User]:
+        return await super().first(**kwargs)
 
     async def add(self, obj: User) -> None:
         return await super().add(obj)

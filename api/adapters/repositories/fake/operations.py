@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from domain.models.operations import Operation
 
@@ -14,6 +14,9 @@ class OperationsFakeRepository(AbstractFakeRepository):
 
     async def get(self, **kwargs) -> Operation:
         return await super().get(**kwargs)
+
+    async def first(self, **kwargs) -> Optional[Operation]:
+        return await super().first(**kwargs)
 
     async def add(self, obj: Operation) -> None:
         return await super().add(obj)

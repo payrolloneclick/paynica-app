@@ -3,6 +3,7 @@ from typing import Optional
 from pydantic import validator
 from pydantic.types import constr
 
+from domain.models.companies import InviteUserToCompany
 from domain.models.users import User
 
 from ..types import (
@@ -127,8 +128,7 @@ class GenerateInvitationCodeCommand(AbstractCommand):
 
 
 class SendInvitationCodeByEmailCommand(AbstractCommand):
-    company_pk: TPrimaryKey
-    user: User
+    invite_user_to_company: InviteUserToCompany
 
 
 class VerifyInvitationCodeAndInviteUserToCompanyCommand(AbstractCommand):

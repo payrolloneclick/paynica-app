@@ -164,8 +164,8 @@ async def send_invitation_code(
 ):
     """Send email code to verify email."""
     result = await bus.handler(command, current_user_pk=current_user_pk)
-    send_command = SendInvitationCodeByEmailCommand(user=result)
-    background_tasks.add_task(bus.handler, send_command, current_user_pk=current_user_pk)
+    send_command = SendInvitationCodeByEmailCommand(invite_user_to_company=result)
+    background_tasks.add_task(bus.handler, send_command)
 
 
 @router.post("/invite-user")

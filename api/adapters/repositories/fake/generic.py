@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic.main import BaseModel
 from pydantic.types import UUID4
@@ -34,6 +34,12 @@ class AbstractFakeRepository(AbstractRepository):
         for key in kwargs:
             objs = filter(lambda o: getattr(o, key) == kwargs[key], objs)
         return [o for o in objs]
+
+    async def first(self, **kwargs) -> Optional[BaseModel]:
+        objs = await self.filter(**kwargs)
+        if objs:
+            return objs[0]
+        return None
 
     async def count(self, **kwargs) -> int:
         objs = await self.filter(**kwargs)

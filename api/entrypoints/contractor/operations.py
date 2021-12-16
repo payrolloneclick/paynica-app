@@ -2,10 +2,10 @@ from typing import List
 
 from fastapi import APIRouter, Depends
 
-from api.domain.types import TPrimaryKey
 from bootstrap import bus
 from domain.commands.contractor.operations import ContractorOperationListCommand, ContractorOperationRetrieveCommand
 from domain.responses.operations import OperationResponse
+from domain.types import TPrimaryKey
 
 from ..dependencies import get_current_contractor_pk
 

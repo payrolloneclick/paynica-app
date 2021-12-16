@@ -1,3 +1,4 @@
+import secrets
 from typing import Optional
 
 from pydantic.types import constr
@@ -29,7 +30,12 @@ class CompanyM2MContractor(AbstractModel):
 
 
 class InviteUserToCompany(AbstractModel):
+    sender_pk: TPrimaryKey
+    sender: Optional[User]
     company_pk: TPrimaryKey
     company: Optional[Company]
     email: TEmail
     invitation_code: TInvitationCode
+
+    async def randomly_set_invitation_code(self, length: int = 16) -> None:
+        self.invitation_code = secrets.token_hex(length)

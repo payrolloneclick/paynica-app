@@ -27,9 +27,10 @@ from domain.commands.users import (
     VerifyInvitationCodeAndInviteUserToCompanyCommand,
     VerifyPhoneCodeCommand,
 )
+from domain.models.companies import CompanyM2MContractor, CompanyM2MEmployer, InviteUserToCompany
 from domain.models.users import User
 from domain.responses.users import GenerateAccessTokenResponse, RefreshAccessTokenResponse
-from domain.types import TPrimaryKey
+from domain.types import TPrimaryKey, TRole
 from service_layer.unit_of_work.db import DBUnitOfWork
 from settings import JWT_ACCESS_TOKEN_EXPIRED_AT, JWT_REFRESH_TOKEN_EXPIRED_AT, JWT_SECRET_KEY
 
@@ -232,7 +233,6 @@ async def generate_reset_password_code_handler(
 async def send_reset_password_code_handler(
     message: SendResetPasswordCodeByEmailCommand,
     email_adapter: Optional[EmailAdapter] = None,
-    current_user_pk: Optional[TPrimaryKey] = None,
 ) -> None:
     await email_adapter.send(
         message.user.email,
@@ -257,9 +257,35 @@ async def reset_password_handler(
 async def generate_invitation_code_handler(
     message: GenerateInvitationCodeCommand,
     uow: Optional[DBUnitOfWork] = None,
-) -> User:
-    # TODO
-    return
+    current_user_pk: Optional[TPrimaryKey] = None,
+) -> InviteUserToCompany:
+    invite_user_to_company = InviteUserToCompany(
+        pk=uuid4(),
+        sender_pk=current_user_pk,
+        company_pk=message.company_pk,
+        email=message.email,
+        created_date=datetime.now(),
+    )
+    async with uow:
+        user = await uow.users.first(email=invite_user_to_company.email)
+        if (
+            user
+            and user.role == TRole.EMPLOYER
+            and await uow.companies_m2m_employers(company_pk=message.company_pk, employer_pk=user.pk).exists()
+        ):
+            raise ValidationException(detail="User is already in this company")
+        if (
+            user
+            and user.role == TRole.CONTRACTOR
+            and await uow.companies_m2m_contractors(company_pk=message.company_pk, contractor_pk=user.pk).exists()
+        ):
+            raise ValidationException(detail="User is already in this company")
+        if await uow.invite_users_to_companies.exists(email=message.email, company_pk=message.company_pk):
+            raise ValidationException(detail="Invitation with this email and company_pk already exists")
+        await invite_user_to_company.randomly_set_invitation_code()
+        await uow.invite_users_to_companies.add(invite_user_to_company)
+        await uow.commit()
+    return invite_user_to_company
 
 
 async def send_invitation_code_by_email_handler(
@@ -267,9 +293,9 @@ async def send_invitation_code_by_email_handler(
     email_adapter: Optional[EmailAdapter] = None,
 ) -> None:
     await email_adapter.send(
-        message.user.email,
+        message.invite_user_to_company.email,
         "Invitation",
-        f"Invitation code: {message.user.email_code}",
+        f"Invitation code: {message.invite_user_to_company.invitation_code}",
     )
 
 
@@ -277,8 +303,27 @@ async def invite_user_handler(
     message: VerifyInvitationCodeAndInviteUserToCompanyCommand,
     uow: Optional[DBUnitOfWork] = None,
 ) -> User:
-    # TODO
-    return
+    async with uow:
+        invite_user_to_company = await uow.invite_users_to_companies.get(invitation_code=message.invitation_code)
+        user = await uow.users.get(email=invite_user_to_company.email)
+        if user.role == TRole.EMPLOYER:
+            company_m2m_employer = CompanyM2MEmployer(
+                pk=uuid4(),
+                company_pk=invite_user_to_company.company_pk,
+                employer_pk=user.pk,
+                created_date=datetime.now(),
+            )
+            await uow.companies_m2m_employers.add(company_m2m_employer)
+        if user.role == TRole.CONTRACTOR:
+            company_m2m_contractor = CompanyM2MContractor(
+                pk=uuid4(),
+                company_pk=invite_user_to_company.company_pk,
+                contractor_pk=user.pk,
+                created_date=datetime.now(),
+            )
+            await uow.companies_m2m_contractors.add(company_m2m_contractor)
+        await uow.commit()
+    return user
 
 
 async def profile_update_handler(

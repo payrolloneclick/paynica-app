@@ -14,6 +14,7 @@ class FakeUnitOfWork(AbstractUnitOfWork):
         self.companies = companies.CompanyFakeRepository(self.session)
         self.companies_m2m_contractors = companies.CompanyM2MContractorFakeRepository(self.session)
         self.companies_m2m_employers = companies.CompanyM2MEmployerFakeRepository(self.session)
+        self.invite_users_to_companies = companies.InviteUserToCompanyFakeRepository(self.session)
         self.recipient_bank_accounts = bank_accounts.RecipientBankAccountFakeRepository(self.session)
         self.sender_bank_accounts = bank_accounts.SenderBankAccountFakeRepository(self.session)
         self.invoices = invoices.InvoicesFakeRepository(self.session)

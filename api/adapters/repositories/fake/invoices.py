@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from domain.models.invoices import Invoice
 
@@ -14,6 +14,9 @@ class InvoicesFakeRepository(AbstractFakeRepository):
 
     async def get(self, **kwargs) -> Invoice:
         return await super().get(**kwargs)
+
+    async def first(self, **kwargs) -> Optional[Invoice]:
+        return await super().first(**kwargs)
 
     async def add(self, obj: Invoice) -> None:
         return await super().add(obj)

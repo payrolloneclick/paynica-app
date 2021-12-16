@@ -14,6 +14,7 @@ class DBUnitOfWork(AbstractUnitOfWork):
         self.companies = companies.CompanyDBRepository(self.session)
         self.companies_m2m_contractors = companies.CompanyM2MContractorDBRepository(self.session)
         self.companies_m2m_employers = companies.CompanyM2MEmployerDBRepository(self.session)
+        self.invite_users_to_companies = companies.InviteUserToCompanyDBRepository(self.session)
         self.recipient_bank_accounts = bank_accounts.RecipientBankAccountDBRepository(self.session)
         self.sender_bank_accounts = bank_accounts.SenderBankAccountDBRepository(self.session)
         self.invoices = invoices.InvoicesDBRepository(self.session)

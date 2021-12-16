@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from domain.models.bank_accounts import RecipientBankAccount, SenderBankAccount
 
@@ -15,6 +15,9 @@ class SenderBankAccountFakeRepository(AbstractFakeRepository):
     async def get(self, **kwargs) -> SenderBankAccount:
         return await super().get(**kwargs)
 
+    async def first(self, **kwargs) -> Optional[SenderBankAccount]:
+        return await super().first(**kwargs)
+
     async def add(self, obj: SenderBankAccount) -> None:
         return await super().add(obj)
 
@@ -28,6 +31,9 @@ class RecipientBankAccountFakeRepository(AbstractFakeRepository):
 
     async def get(self, **kwargs) -> RecipientBankAccount:
         return await super().get(**kwargs)
+
+    async def first(self, **kwargs) -> Optional[RecipientBankAccount]:
+        return await super().first(**kwargs)
 
     async def add(self, obj: RecipientBankAccount) -> None:
         return await super().add(obj)

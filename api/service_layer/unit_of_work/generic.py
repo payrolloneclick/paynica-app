@@ -8,6 +8,7 @@ class AbstractUnitOfWork(abc.ABC):
     companies: companies.CompanyDBRepository
     companies_m2m_contractors: companies.CompanyM2MContractorDBRepository
     companies_m2m_employers: companies.CompanyM2MEmployerDBRepository
+    invite_users_to_companies: companies.InviteUserToCompanyDBRepository
     recipient_bank_accounts: bank_accounts.RecipientBankAccountDBRepository
     sender_bank_accounts: bank_accounts.SenderBankAccountDBRepository
     invoices: invoices.InvoicesDBRepository
