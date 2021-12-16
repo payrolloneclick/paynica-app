@@ -4,9 +4,16 @@ from starlette.responses import JSONResponse
 
 from adapters.repositories.exceptions import ObjectDoesNotExist
 from bootstrap import bus
+from entrypoints.contractor.bank_accounts import router as contractor_bank_accounts_router
+from entrypoints.contractor.companies import router as contractor_companies_router
+from entrypoints.contractor.invoices import router as contractor_invoices_router
+from entrypoints.contractor.operations import router as contractor_operations_router
+from entrypoints.employer.bank_accounts import router as employer_bank_accounts_router
+from entrypoints.employer.companies import router as employer_companies_router
+from entrypoints.employer.invoices import router as employer_invoices_router
+from entrypoints.employer.operations import router as employer_operations_router
 from entrypoints.exceptions import NotAuthorizedException
 from entrypoints.index import router as index_router
-from entrypoints.operations import router as operations_router
 from entrypoints.users import router as users_router
 from service_layer.exceptions import PermissionDeniedException, ValidationException
 
@@ -44,5 +51,12 @@ async def validation_callback(request: Request, exc: ValidationException):
 
 
 app.include_router(index_router)
-app.include_router(operations_router)
 app.include_router(users_router)
+app.include_router(employer_companies_router)
+app.include_router(employer_bank_accounts_router)
+app.include_router(employer_invoices_router)
+app.include_router(employer_operations_router)
+app.include_router(contractor_companies_router)
+app.include_router(contractor_bank_accounts_router)
+app.include_router(contractor_invoices_router)
+app.include_router(contractor_operations_router)

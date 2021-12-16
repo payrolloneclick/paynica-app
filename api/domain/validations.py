@@ -2,8 +2,6 @@ from typing import Optional
 
 import phonenumbers
 
-EMAIL_REGEXP = r"^[\w\.\+\-]+\@[\w]+\.[a-z]{2,3}$"
-
 
 def validate_phone(phone: Optional[str]) -> str:
     if not phone:

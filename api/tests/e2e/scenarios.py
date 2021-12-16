@@ -1,36 +1,42 @@
 import uuid
-from typing import Optional
 
 import jwt
 from httpx import AsyncClient
 
 from bootstrap import bus
+from domain.models.users import User
+from domain.types import TRole
 from settings import JWT_SECRET_KEY
 
 
-async def signup_create_inactive_user(
+async def signup_user(
     async_client: AsyncClient,
     email: str,
+    role: TRole,
     password: str,
-    phone: Optional[str] = "+1 800 444 4444",
-    first_name: Optional[str] = "test first name",
-    last_name: Optional[str] = "test last name",
-) -> dict:
+) -> User:
     response = await async_client.post(
-        "/users/create-inactive-user",
+        "/users/signup-user",
         json={
             "email": email,
-            "phone": phone,
-            "first_name": first_name,
-            "last_name": last_name,
+            "role": role,
             "password": password,
             "repeat_password": password,
         },
     )
     assert response.status_code == 200, response.text
+    async with bus.uow:
+        db_users = await bus.uow.users.all()
+        db_user = db_users[-1]
+    assert db_user.email == email
+    assert db_user.role == role
+    assert await db_user.verify_password(password)
+    assert not db_user.is_active
+    assert not db_user.is_onboarded
+    return db_user
 
 
-async def signup_verify_email(async_client: AsyncClient, email: str) -> dict:
+async def signup_verify_email(async_client: AsyncClient, email: str) -> User:
     response = await async_client.post(
         "/users/send-email-code",
         json={
@@ -55,9 +61,11 @@ async def signup_verify_email(async_client: AsyncClient, email: str) -> dict:
         db_users = await bus.uow.users.all()
         db_user = db_users[-1]
     assert db_user.is_email_verified
+    assert db_user.is_active
+    return db_user
 
 
-async def signup_verify_phone(async_client: AsyncClient, phone: str) -> dict:
+async def signup_verify_phone(async_client: AsyncClient, phone: str) -> User:
     response = await async_client.post(
         "/users/send-phone-code",
         json={
@@ -83,6 +91,7 @@ async def signup_verify_phone(async_client: AsyncClient, phone: str) -> dict:
         db_users = await bus.uow.users.all()
         db_user = db_users[-1]
     assert db_user.is_phone_verified
+    return db_user
 
 
 async def signin_generate_access_token(async_client: AsyncClient, email: str, password: str) -> dict:

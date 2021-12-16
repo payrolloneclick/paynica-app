@@ -8,20 +8,23 @@ from pydantic.types import UUID4
 from adapters.email.email import EmailAdapter
 from adapters.sms.sms import SmsAdapter
 from domain.commands.users import (
-    CreateUserCommand,
-    DeleteUserCommand,
     GenerateAccessTokenCommand,
     GenerateEmailCodeCommand,
+    GenerateInvitationCodeCommand,
     GeneratePhoneCodeCommand,
     GenerateResetPasswordCodeCommand,
+    ProfileDeleteCommand,
+    ProfileRetrieveCommand,
+    ProfileUpdateCommand,
     RefreshAccessTokenCommand,
     ResetPasswordCommand,
-    RetrieveUserCommand,
     SendEmailCodeByEmailCommand,
+    SendInvitationCodeByEmailCommand,
     SendPhoneCodeBySmsCommand,
     SendResetPasswordCodeByEmailCommand,
-    UpdateUserCommand,
+    SignUpUserCommand,
     VerifyEmailCodeCommand,
+    VerifyInvitationCodeAndInviteUserToCompanyCommand,
     VerifyPhoneCodeCommand,
 )
 from domain.models.users import User
@@ -114,24 +117,20 @@ async def refresh_access_token_handler(
     )
 
 
-async def create_user_handler(
-    message: CreateUserCommand,
+async def signup_user_handler(
+    message: SignUpUserCommand,
     uow: Optional[DBUnitOfWork] = None,
 ) -> User:
     user = User(
         pk=uuid4(),
         email=message.email,
-        phone=message.phone,
-        first_name=message.first_name,
-        last_name=message.last_name,
+        role=message.role,
         created_date=datetime.now(),
     )
     await user.set_password(message.password)
     async with uow:
         if message.email and await uow.users.exists(email=message.email):
             raise ValidationException(detail="User with this email already exists")
-        if message.phone and await uow.users.exists(phone=message.phone):
-            raise ValidationException(detail="User with this phone already exists")
         await uow.users.add(user)
         await uow.commit()
     return user
@@ -254,8 +253,35 @@ async def reset_password_handler(
     return user
 
 
-async def update_user_handler(
-    message: UpdateUserCommand,
+async def generate_invitation_code_handler(
+    message: GenerateInvitationCodeCommand,
+    uow: Optional[DBUnitOfWork] = None,
+) -> User:
+    # TODO
+    return
+
+
+async def send_invitation_code_by_email_handler(
+    message: SendInvitationCodeByEmailCommand,
+    email_adapter: Optional[EmailAdapter] = None,
+) -> None:
+    await email_adapter.send(
+        message.user.email,
+        "Invitation",
+        f"Invitation code: {message.user.email_code}",
+    )
+
+
+async def invite_user_handler(
+    message: VerifyInvitationCodeAndInviteUserToCompanyCommand,
+    uow: Optional[DBUnitOfWork] = None,
+) -> User:
+    # TODO
+    return
+
+
+async def profile_update_handler(
+    message: ProfileUpdateCommand,
     uow: Optional[DBUnitOfWork] = None,
     current_user_pk: Optional[UUID4] = None,
 ) -> User:
@@ -285,8 +311,8 @@ async def update_user_handler(
     return user
 
 
-async def retrieve_user_handler(
-    message: RetrieveUserCommand,
+async def profile_retrieve_handler(
+    message: ProfileRetrieveCommand,
     uow: Optional[DBUnitOfWork] = None,
     current_user_pk: Optional[UUID4] = None,
 ) -> User:
@@ -295,14 +321,12 @@ async def retrieve_user_handler(
     return user
 
 
-async def delete_user_handler(
-    message: DeleteUserCommand,
+async def profile_delete_handler(
+    message: ProfileDeleteCommand,
     uow: Optional[DBUnitOfWork] = None,
     current_user_pk: Optional[UUID4] = None,
-) -> DeleteUserCommand:
+) -> ProfileDeleteCommand:
     async with uow:
-        if message.pk != current_user_pk:
-            raise PermissionDeniedException(detail="User doesn't have permissions to delete this user")
-        await uow.users.delete(message.pk)
+        await uow.users.delete(current_user_pk)
         await uow.commit()
     return message

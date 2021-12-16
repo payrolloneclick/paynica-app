@@ -1,13 +1,17 @@
 import abc
 
-from adapters.repositories.db.operations import AccountDBRepository, OperationsDBRepository
-from adapters.repositories.db.users import UsersDBRepository
+from adapters.repositories.db import bank_accounts, companies, invoices, operations, users
 
 
 class AbstractUnitOfWork(abc.ABC):
-    users: UsersDBRepository
-    accounts: AccountDBRepository
-    operations: OperationsDBRepository
+    users: users.UsersDBRepository
+    companies: companies.CompanyDBRepository
+    companies_m2m_contractors: companies.CompanyM2MContractorDBRepository
+    companies_m2m_employers: companies.CompanyM2MEmployerDBRepository
+    recipient_bank_accounts: bank_accounts.RecipientBankAccountDBRepository
+    sender_bank_accounts: bank_accounts.SenderBankAccountDBRepository
+    invoices: invoices.InvoicesDBRepository
+    operations: operations.OperationsDBRepository
 
     async def __aexit__(self, *args, **kwargs):
         # rollback does nothing in case we run commit into context manager before exit

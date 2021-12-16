@@ -1,44 +1,29 @@
 from decimal import Decimal
-from enum import Enum
 from typing import Optional
 
+from ..types import TPrimaryKey
+from .bank_accounts import RecipientBankAccount, SenderBankAccount
+from .companies import Company
 from .generic import AbstractModel
+from .invoices import Invoice
 from .users import User
 
 
-class Currency(str, Enum):
-    USD = "USD"
-    GBR = "GBP"
-    EUR = "EUR"
-    RUB = "RUB"
+class Operation(SenderBankAccount, RecipientBankAccount, AbstractModel):
+    invoice_pk: TPrimaryKey
+    invoice: Optional[Invoice]
+    operation_owner_company_pk: TPrimaryKey
+    operation_owner_company: Optional[Company]
+    operation_owner_user_pk: TPrimaryKey
+    operation_owner_user: Optional[User]
 
-
-class Country(str, Enum):
-    USA = "USA"
-    GBR = "GBR"
-    RUS = "RUS"
-
-
-class Account(AbstractModel):
-    user: User
-
-    currency: Currency
-    country_alpha3: Country
-
-
-class Operation(AbstractModel):
-    user: User
-
-    sender_account: Optional[Account]
+    sender_account_pk: Optional[TPrimaryKey]
+    sender_account: Optional[SenderBankAccount]
     sender_amount: Optional[Decimal]
-    sender_currency: Optional[Currency]
-    sender_country_alpha3: Optional[Country]
 
-    recipient_account: Optional[Account]
+    recipient_account_pk: Optional[TPrimaryKey]
+    recipient_account: Optional[RecipientBankAccount]
     recipient_amount: Optional[Decimal]
-    recipient_currency: Optional[Currency]
-    recipient_country_alpha3: Optional[Country]
 
-    punica_fee: Optional[Decimal]
-    crypto_fee: Optional[Decimal]
-    crypto_to_cash_fee: Optional[Decimal]
+    our_fee: Optional[Decimal]
+    provider_fee: Optional[Decimal]

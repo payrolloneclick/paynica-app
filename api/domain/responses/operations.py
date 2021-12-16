@@ -3,13 +3,13 @@ from typing import Optional
 
 from pydantic.types import UUID4
 
-from ..models.operations import Country, Currency
+from ..types import TCountry, TCurrency
 from .generic import AbstractReponse
 
 
 class AccountResponse(AbstractReponse):
-    currency: Currency
-    country_alpha3: Country
+    currency: TCurrency
+    country_alpha3: TCountry
 
 
 class OperationResponse(AbstractReponse):
@@ -17,13 +17,13 @@ class OperationResponse(AbstractReponse):
 
     sender_account: Optional[AccountResponse]
     sender_amount: Optional[Decimal]
-    sender_currency: Optional[Currency]
-    sender_country_alpha3: Optional[Country]
+    sender_currency: Optional[TCurrency]
+    sender_country_alpha3: Optional[TCountry]
 
     recipient_account: Optional[AccountResponse]
     recipient_amount: Optional[Decimal]
-    recipient_currency: Optional[Currency]
-    recipient_country_alpha3: Optional[Country]
+    recipient_currency: Optional[TCurrency]
+    recipient_country_alpha3: Optional[TCountry]
 
     punica_fee: Optional[Decimal]
     crypto_fee: Optional[Decimal]

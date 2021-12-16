@@ -25,3 +25,15 @@ async def get_current_user_pk(token: str = Depends(token_auth_scheme)):
     if expired_at < now:
         raise NotAuthorizedException("Expired access token")
     return UUID(user_pk)
+
+
+async def get_current_employer_pk(token: str = Depends(token_auth_scheme)):
+    user_pk = get_current_user_pk(token)
+    # TODO check role employer
+    return user_pk
+
+
+async def get_current_contractor_pk(token: str = Depends(token_auth_scheme)):
+    user_pk = get_current_user_pk(token)
+    # TODO check role contractor
+    return user_pk

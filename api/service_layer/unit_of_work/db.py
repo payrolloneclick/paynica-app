@@ -1,4 +1,4 @@
-from adapters.repositories.db import operations, users
+from adapters.repositories.db import bank_accounts, companies, invoices, operations, users
 from adapters.repositories.session.db import DBSession
 from settings import DATABASE_URI
 
@@ -11,7 +11,12 @@ class DBUnitOfWork(AbstractUnitOfWork):
 
     async def __aenter__(self):
         self.users = users.UsersDBRepository(self.session)
-        self.accounts = operations.AccountDBRepository(self.session)
+        self.companies = companies.CompanyDBRepository(self.session)
+        self.companies_m2m_contractors = companies.CompanyM2MContractorDBRepository(self.session)
+        self.companies_m2m_employers = companies.CompanyM2MEmployerDBRepository(self.session)
+        self.recipient_bank_accounts = bank_accounts.RecipientBankAccountDBRepository(self.session)
+        self.sender_bank_accounts = bank_accounts.SenderBankAccountDBRepository(self.session)
+        self.invoices = invoices.InvoicesDBRepository(self.session)
         self.operations = operations.OperationsDBRepository(self.session)
 
     async def __aexit__(self, *args, **kwargs):

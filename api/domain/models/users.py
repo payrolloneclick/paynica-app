@@ -8,26 +8,28 @@ from typing import Optional
 
 from pydantic.types import constr
 
-from ..validations import EMAIL_REGEXP
+from ..types import TEmail, TEmailCode, TPasswordCode, TPhone, TPhoneCode, TRole
 from .generic import AbstractModel
 
 
 class User(AbstractModel):
-    email: constr(strip_whitespace=True, to_lower=True, regex=EMAIL_REGEXP)
-    phone: constr(strip_whitespace=True, to_lower=True)
+    email: TEmail
+    role: TRole
 
-    first_name: constr(strip_whitespace=True)
-    last_name: constr(strip_whitespace=True)
+    phone: Optional[TPhone]
+    first_name: Optional[constr(strip_whitespace=True)]
+    last_name: Optional[constr(strip_whitespace=True)]
     password: Optional[constr(strip_whitespace=True)]  # we store hash of password
     last_login: Optional[datetime]
 
-    phone_code: Optional[constr(strip_whitespace=True, min_length=6)]
-    email_code: Optional[constr(strip_whitespace=True, min_length=16)]
-    password_code: Optional[constr(strip_whitespace=True, min_length=16)]
+    phone_code: Optional[TPhoneCode]
+    email_code: Optional[TEmailCode]
+    password_code: Optional[TPasswordCode]
 
     is_phone_verified: Optional[bool] = False
     is_email_verified: Optional[bool] = False
     is_active: Optional[bool] = False
+    is_onboarded: Optional[bool] = False
 
     async def _get_password_hash(self, password: str, salt: bytes) -> bytes:
         return hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 10000)
