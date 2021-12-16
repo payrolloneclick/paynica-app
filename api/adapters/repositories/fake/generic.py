@@ -30,10 +30,9 @@ class AbstractFakeRepository(AbstractRepository):
 
     async def filter(self, **kwargs) -> List[BaseModel]:
         objs = await self.all()
-        objs = filter(lambda o: o, objs)
         for key in kwargs:
-            objs = filter(lambda o: getattr(o, key) == kwargs[key], objs)
-        return [o for o in objs]
+            objs = [o for o in objs if getattr(o, key) == kwargs[key]]
+        return objs
 
     async def first(self, **kwargs) -> Optional[BaseModel]:
         objs = await self.filter(**kwargs)

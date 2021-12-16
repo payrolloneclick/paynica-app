@@ -43,8 +43,10 @@ async def generate_access_token_handler(
 ) -> GenerateAccessTokenResponse:
     async with uow:
         user = await uow.users.get(email=message.email)
-        if not await user.verify_password(message.password):
-            raise PermissionDeniedException("Invalid credentials")
+        if not user.is_active:
+            raise PermissionDeniedException(detail="Please finish signup process for this user")
+        if not await user.verify_password(message.password) or not user.is_active:
+            raise PermissionDeniedException(detail="Invalid credentials")
 
     now = datetime.utcnow()
     refresh_token_expired_at = now + timedelta(seconds=JWT_REFRESH_TOKEN_EXPIRED_AT)
@@ -84,22 +86,22 @@ async def refresh_access_token_handler(
     try:
         decoded_refresh_token = jwt.decode(message.refresh_token, JWT_SECRET_KEY, algorithms=["HS256"])
     except jwt.PyJWTError:
-        raise PermissionDeniedException("Invalid refresh token")
+        raise PermissionDeniedException(detail="Invalid refresh token")
 
     refresh_token_expired_at = decoded_refresh_token.get("refresh_token_expired_at")
     user_pk = decoded_refresh_token.get("user_pk")
     if not refresh_token_expired_at or not user_pk:
-        raise PermissionDeniedException("Invalid payload for refresh token")
+        raise PermissionDeniedException(detail="Invalid payload for refresh token")
 
     expired_at = datetime.fromisoformat(refresh_token_expired_at)
     now = datetime.utcnow()
     if expired_at < now:
-        raise PermissionDeniedException("Expired refresh token")
+        raise PermissionDeniedException(detail="Expired refresh token")
 
     async with uow:
         user = await uow.users.get(pk=UUID(user_pk))
         if not user.is_active:
-            raise PermissionDeniedException("Inactive user. Please finish sign up process.")
+            raise PermissionDeniedException(detail="Inactive user. Please finish sign up process.")
         # TODO get user and salt/token from user to control jwt
 
     access_token_expired_at = now + timedelta(seconds=JWT_ACCESS_TOKEN_EXPIRED_AT)
@@ -123,17 +125,27 @@ async def signup_user_handler(
     message: SignUpUserCommand,
     uow: Optional[DBUnitOfWork] = None,
 ) -> User:
-    user = User(
-        pk=uuid4(),
-        email=message.email,
-        role=message.role,
-        created_date=datetime.now(),
-    )
-    await user.set_password(message.password)
     async with uow:
-        if message.email and await uow.users.exists(email=message.email):
-            raise ValidationException(detail="User with this email already exists")
-        await uow.users.add(user)
+        if await uow.users.exists(email=message.email, is_active=True):
+            raise ValidationException(detail="Active user with this email already exists")
+
+        other_role = TRole.CONTRACTOR if message.role == TRole.EMPLOYER else TRole.EMPLOYER
+        if await uow.users.exists(email=message.email, role=other_role):
+            raise ValidationException(detail="User with other role and this email already exists")
+
+        user = await uow.users.first(email=message.email, role=message.role, is_active=False)
+        if user:
+            await user.set_password(message.password)
+            uow.users.update(user)
+        else:
+            user = User(
+                pk=uuid4(),
+                email=message.email,
+                role=message.role,
+                created_date=datetime.now(),
+            )
+            await user.set_password(message.password)
+            await uow.users.add(user)
         await uow.commit()
     return user
 
@@ -145,7 +157,7 @@ async def generate_email_code_handler(
     async with uow:
         user = await uow.users.get(email=message.email)
         if user.is_email_verified:
-            raise ValidationException("Email is already verified")
+            raise ValidationException(detail="Email is already verified")
         await user.randomly_set_email_code()
         user.updated_date = datetime.now()
         await uow.users.update(user)
@@ -185,7 +197,7 @@ async def generate_phone_code_handler(
     async with uow:
         user = await uow.users.get(phone=message.phone)
         if user.is_phone_verified:
-            raise ValidationException("Phone is already verified")
+            raise ValidationException(detail="Phone is already verified")
         await user.randomly_set_phone_code()
         user.updated_date = datetime.now()
         await uow.users.update(user)

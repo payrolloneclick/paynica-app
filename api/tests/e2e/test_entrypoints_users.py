@@ -100,6 +100,15 @@ async def test_signup_4xx(async_client):
     assert response.status_code == 200, response.text
     assert response.json() is None
 
+    # continue process signup
+    response = await async_client.post(
+        url,
+        json=data,
+    )
+    assert response.status_code == 200, response.text
+    assert response.json() is None
+
+    # user with other role and same email exists
     response = await async_client.post(
         url,
         json={
@@ -107,7 +116,16 @@ async def test_signup_4xx(async_client):
             "role": TRole.CONTRACTOR,
         },
     )
-    # email duplication
+    assert response.status_code == 400, response.text
+
+    # activate user - is_active = True
+    await signup_verify_email(async_client, "test@test.com")
+
+    # activated user exists
+    response = await async_client.post(
+        url,
+        json=data,
+    )
     assert response.status_code == 400, response.text
 
 
@@ -268,6 +286,19 @@ async def test_generate_access_token(async_client):
     await signup_verify_email(async_client, "test@test.com")
     response = await signin_generate_access_token(async_client, "test@test.com", "password")
     assert "access_token" in response
+
+
+@pytest.mark.asyncio
+async def test_generate_access_token_non_active_user(async_client):
+    await signup_user(async_client, "test@test.com", TRole.EMPLOYER, "password")
+    response = await async_client.post(
+        "/users/generate-access-token",
+        json={
+            "email": "test@test.com",
+            "password": "password",
+        },
+    )
+    assert response.status_code == 403, response.text
 
 
 @pytest.mark.asyncio
