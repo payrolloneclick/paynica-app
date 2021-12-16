@@ -5,6 +5,8 @@ import jwt
 from fastapi import Depends
 from fastapi.security import HTTPBearer
 
+from bootstrap import bus
+from domain.types import TRole
 from entrypoints.exceptions import NotAuthorizedException
 from settings import JWT_SECRET_KEY
 
@@ -24,4 +26,24 @@ async def get_current_user_pk(token: str = Depends(token_auth_scheme)):
     now = datetime.utcnow()
     if expired_at < now:
         raise NotAuthorizedException("Expired access token")
+
+    async with bus.uow:
+        if not await bus.uow.users.exists(pk=UUID(user_pk), is_active=True):
+            raise NotAuthorizedException(detail="Please finish signup process for this user")
     return UUID(user_pk)
+
+
+async def get_current_employer_pk(token: str = Depends(token_auth_scheme)):
+    user_pk = get_current_user_pk(token)
+    async with bus.uow:
+        if not await bus.uow.users.exists(pk=UUID(user_pk), role=TRole.EMPLOYER):
+            raise NotAuthorizedException(detail="User is not EMPLOYER")
+    return user_pk
+
+
+async def get_current_contractor_pk(token: str = Depends(token_auth_scheme)):
+    user_pk = get_current_user_pk(token)
+    async with bus.uow:
+        if not await bus.uow.users.exists(pk=UUID(user_pk), role=TRole.CONTRACTOR):
+            raise NotAuthorizedException(detail="User is not CONTRACTOR")
+    return user_pk

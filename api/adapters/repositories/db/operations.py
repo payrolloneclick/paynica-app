@@ -1,9 +1,4 @@
-from ..fake.operations import AccountFakeRepository, OperationsFakeRepository
-
-
-# TODO
-class AccountDBRepository(AccountFakeRepository):
-    pass
+from ..fake.operations import OperationsFakeRepository
 
 
 # TODO

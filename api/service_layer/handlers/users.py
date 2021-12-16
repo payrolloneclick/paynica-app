@@ -3,29 +3,34 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 import jwt
-from pydantic.types import UUID4
 
 from adapters.email.email import EmailAdapter
 from adapters.sms.sms import SmsAdapter
 from domain.commands.users import (
-    CreateUserCommand,
-    DeleteUserCommand,
+    ChangePasswordCommand,
     GenerateAccessTokenCommand,
     GenerateEmailCodeCommand,
+    GenerateInvitationCodeCommand,
     GeneratePhoneCodeCommand,
     GenerateResetPasswordCodeCommand,
+    ProfileDeleteCommand,
+    ProfileRetrieveCommand,
+    ProfileUpdateCommand,
     RefreshAccessTokenCommand,
     ResetPasswordCommand,
-    RetrieveUserCommand,
     SendEmailCodeByEmailCommand,
+    SendInvitationCodeByEmailCommand,
     SendPhoneCodeBySmsCommand,
     SendResetPasswordCodeByEmailCommand,
-    UpdateUserCommand,
+    SignUpUserCommand,
     VerifyEmailCodeCommand,
+    VerifyInvitationCodeAndInviteUserToCompanyCommand,
     VerifyPhoneCodeCommand,
 )
+from domain.models.companies import CompanyM2MContractor, CompanyM2MEmployer, InviteUserToCompany
 from domain.models.users import User
 from domain.responses.users import GenerateAccessTokenResponse, RefreshAccessTokenResponse
+from domain.types import TPrimaryKey, TRole
 from service_layer.unit_of_work.db import DBUnitOfWork
 from settings import JWT_ACCESS_TOKEN_EXPIRED_AT, JWT_REFRESH_TOKEN_EXPIRED_AT, JWT_SECRET_KEY
 
@@ -38,8 +43,10 @@ async def generate_access_token_handler(
 ) -> GenerateAccessTokenResponse:
     async with uow:
         user = await uow.users.get(email=message.email)
-        if not await user.verify_password(message.password):
-            raise PermissionDeniedException("Invalid credentials")
+        if not user.is_active:
+            raise PermissionDeniedException(detail="Please finish signup process for this user")
+        if not await user.verify_password(message.password) or not user.is_active:
+            raise PermissionDeniedException(detail="Invalid credentials")
 
     now = datetime.utcnow()
     refresh_token_expired_at = now + timedelta(seconds=JWT_REFRESH_TOKEN_EXPIRED_AT)
@@ -79,22 +86,22 @@ async def refresh_access_token_handler(
     try:
         decoded_refresh_token = jwt.decode(message.refresh_token, JWT_SECRET_KEY, algorithms=["HS256"])
     except jwt.PyJWTError:
-        raise PermissionDeniedException("Invalid refresh token")
+        raise PermissionDeniedException(detail="Invalid refresh token")
 
     refresh_token_expired_at = decoded_refresh_token.get("refresh_token_expired_at")
     user_pk = decoded_refresh_token.get("user_pk")
     if not refresh_token_expired_at or not user_pk:
-        raise PermissionDeniedException("Invalid payload for refresh token")
+        raise PermissionDeniedException(detail="Invalid payload for refresh token")
 
     expired_at = datetime.fromisoformat(refresh_token_expired_at)
     now = datetime.utcnow()
     if expired_at < now:
-        raise PermissionDeniedException("Expired refresh token")
+        raise PermissionDeniedException(detail="Expired refresh token")
 
     async with uow:
         user = await uow.users.get(pk=UUID(user_pk))
         if not user.is_active:
-            raise PermissionDeniedException("Inactive user. Please finish sign up process.")
+            raise PermissionDeniedException(detail="Inactive user. Please finish sign up process.")
         # TODO get user and salt/token from user to control jwt
 
     access_token_expired_at = now + timedelta(seconds=JWT_ACCESS_TOKEN_EXPIRED_AT)
@@ -114,25 +121,31 @@ async def refresh_access_token_handler(
     )
 
 
-async def create_user_handler(
-    message: CreateUserCommand,
+async def signup_user_handler(
+    message: SignUpUserCommand,
     uow: Optional[DBUnitOfWork] = None,
 ) -> User:
-    user = User(
-        pk=uuid4(),
-        email=message.email,
-        phone=message.phone,
-        first_name=message.first_name,
-        last_name=message.last_name,
-        created_date=datetime.now(),
-    )
-    await user.set_password(message.password)
     async with uow:
-        if message.email and await uow.users.exists(email=message.email):
-            raise ValidationException(detail="User with this email already exists")
-        if message.phone and await uow.users.exists(phone=message.phone):
-            raise ValidationException(detail="User with this phone already exists")
-        await uow.users.add(user)
+        if await uow.users.exists(email=message.email, is_active=True):
+            raise ValidationException(detail="Active user with this email already exists")
+
+        other_role = TRole.CONTRACTOR if message.role == TRole.EMPLOYER else TRole.EMPLOYER
+        if await uow.users.exists(email=message.email, role=other_role):
+            raise ValidationException(detail="User with other role and this email already exists")
+
+        user = await uow.users.first(email=message.email, role=message.role, is_active=False)
+        if user:
+            await user.set_password(message.password)
+            uow.users.update(user)
+        else:
+            user = User(
+                pk=uuid4(),
+                email=message.email,
+                role=message.role,
+                created_date=datetime.now(),
+            )
+            await user.set_password(message.password)
+            await uow.users.add(user)
         await uow.commit()
     return user
 
@@ -144,7 +157,7 @@ async def generate_email_code_handler(
     async with uow:
         user = await uow.users.get(email=message.email)
         if user.is_email_verified:
-            raise ValidationException("Email is already verified")
+            raise ValidationException(detail="Email is already verified")
         await user.randomly_set_email_code()
         user.updated_date = datetime.now()
         await uow.users.update(user)
@@ -184,7 +197,7 @@ async def generate_phone_code_handler(
     async with uow:
         user = await uow.users.get(phone=message.phone)
         if user.is_phone_verified:
-            raise ValidationException("Phone is already verified")
+            raise ValidationException(detail="Phone is already verified")
         await user.randomly_set_phone_code()
         user.updated_date = datetime.now()
         await uow.users.update(user)
@@ -232,7 +245,6 @@ async def generate_reset_password_code_handler(
 async def send_reset_password_code_handler(
     message: SendResetPasswordCodeByEmailCommand,
     email_adapter: Optional[EmailAdapter] = None,
-    current_user_pk: Optional[UUID4] = None,
 ) -> None:
     await email_adapter.send(
         message.user.email,
@@ -254,10 +266,82 @@ async def reset_password_handler(
     return user
 
 
-async def update_user_handler(
-    message: UpdateUserCommand,
+async def generate_invitation_code_handler(
+    message: GenerateInvitationCodeCommand,
     uow: Optional[DBUnitOfWork] = None,
-    current_user_pk: Optional[UUID4] = None,
+    current_user_pk: Optional[TPrimaryKey] = None,
+) -> InviteUserToCompany:
+    invite_user_to_company = InviteUserToCompany(
+        pk=uuid4(),
+        sender_pk=current_user_pk,
+        company_pk=message.company_pk,
+        email=message.email,
+        created_date=datetime.now(),
+    )
+    async with uow:
+        user = await uow.users.first(email=invite_user_to_company.email)
+        if (
+            user
+            and user.role == TRole.EMPLOYER
+            and await uow.companies_m2m_employers(company_pk=message.company_pk, employer_pk=user.pk).exists()
+        ):
+            raise ValidationException(detail="User is already in this company")
+        if (
+            user
+            and user.role == TRole.CONTRACTOR
+            and await uow.companies_m2m_contractors(company_pk=message.company_pk, contractor_pk=user.pk).exists()
+        ):
+            raise ValidationException(detail="User is already in this company")
+        if await uow.invite_users_to_companies.exists(email=message.email, company_pk=message.company_pk):
+            raise ValidationException(detail="Invitation with this email and company_pk already exists")
+        await invite_user_to_company.randomly_set_invitation_code()
+        await uow.invite_users_to_companies.add(invite_user_to_company)
+        await uow.commit()
+    return invite_user_to_company
+
+
+async def send_invitation_code_by_email_handler(
+    message: SendInvitationCodeByEmailCommand,
+    email_adapter: Optional[EmailAdapter] = None,
+) -> None:
+    await email_adapter.send(
+        message.invite_user_to_company.email,
+        "Invitation",
+        f"Invitation code: {message.invite_user_to_company.invitation_code}",
+    )
+
+
+async def invite_user_handler(
+    message: VerifyInvitationCodeAndInviteUserToCompanyCommand,
+    uow: Optional[DBUnitOfWork] = None,
+) -> User:
+    async with uow:
+        invite_user_to_company = await uow.invite_users_to_companies.get(invitation_code=message.invitation_code)
+        user = await uow.users.get(email=invite_user_to_company.email)
+        if user.role == TRole.EMPLOYER:
+            company_m2m_employer = CompanyM2MEmployer(
+                pk=uuid4(),
+                company_pk=invite_user_to_company.company_pk,
+                employer_pk=user.pk,
+                created_date=datetime.now(),
+            )
+            await uow.companies_m2m_employers.add(company_m2m_employer)
+        if user.role == TRole.CONTRACTOR:
+            company_m2m_contractor = CompanyM2MContractor(
+                pk=uuid4(),
+                company_pk=invite_user_to_company.company_pk,
+                contractor_pk=user.pk,
+                created_date=datetime.now(),
+            )
+            await uow.companies_m2m_contractors.add(company_m2m_contractor)
+        await uow.commit()
+    return user
+
+
+async def profile_update_handler(
+    message: ProfileUpdateCommand,
+    uow: Optional[DBUnitOfWork] = None,
+    current_user_pk: Optional[TPrimaryKey] = None,
 ) -> User:
     async with uow:
         user = await uow.users.get(pk=current_user_pk)
@@ -277,32 +361,42 @@ async def update_user_handler(
             if message.phone != user.phone:
                 user.is_phone_verified = False
             user.phone = message.phone
-        if message.password:
-            await user.set_password(message.password)
         user.updated_date = datetime.now()
         await uow.users.update(user)
         await uow.commit()
     return user
 
 
-async def retrieve_user_handler(
-    message: RetrieveUserCommand,
+async def profile_retrieve_handler(
+    message: ProfileRetrieveCommand,
     uow: Optional[DBUnitOfWork] = None,
-    current_user_pk: Optional[UUID4] = None,
+    current_user_pk: Optional[TPrimaryKey] = None,
 ) -> User:
     async with uow:
-        user = await uow.users.get(pk=message.pk, is_active=True)
+        user = await uow.users.get(pk=current_user_pk, is_active=True)
     return user
 
 
-async def delete_user_handler(
-    message: DeleteUserCommand,
+async def profile_delete_handler(
+    message: ProfileDeleteCommand,
     uow: Optional[DBUnitOfWork] = None,
-    current_user_pk: Optional[UUID4] = None,
-) -> DeleteUserCommand:
+    current_user_pk: Optional[TPrimaryKey] = None,
+) -> TPrimaryKey:
     async with uow:
-        if message.pk != current_user_pk:
-            raise PermissionDeniedException(detail="User doesn't have permissions to delete this user")
-        await uow.users.delete(message.pk)
+        await uow.users.delete(current_user_pk)
         await uow.commit()
-    return message
+    return current_user_pk
+
+
+async def change_password_handler(
+    message: ChangePasswordCommand,
+    uow: Optional[DBUnitOfWork] = None,
+    current_user_pk: Optional[TPrimaryKey] = None,
+) -> User:
+    async with uow:
+        user = await uow.users.get(pk=current_user_pk)
+        await user.set_password(message.password)
+        user.updated_date = datetime.now()
+        await uow.users.update(user)
+        await uow.commit()
+    return user

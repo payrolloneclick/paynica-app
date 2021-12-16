@@ -1,25 +1,29 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, Response
-from pydantic.types import UUID4
 
 from bootstrap import bus
 from domain.commands.users import (
-    CreateUserCommand,
-    DeleteUserCommand,
+    ChangePasswordCommand,
     GenerateAccessTokenCommand,
     GenerateEmailCodeCommand,
+    GenerateInvitationCodeCommand,
     GeneratePhoneCodeCommand,
     GenerateResetPasswordCodeCommand,
+    ProfileDeleteCommand,
+    ProfileRetrieveCommand,
+    ProfileUpdateCommand,
     RefreshAccessTokenCommand,
     ResetPasswordCommand,
-    RetrieveUserCommand,
     SendEmailCodeByEmailCommand,
+    SendInvitationCodeByEmailCommand,
     SendPhoneCodeBySmsCommand,
     SendResetPasswordCodeByEmailCommand,
-    UpdateUserCommand,
+    SignUpUserCommand,
     VerifyEmailCodeCommand,
+    VerifyInvitationCodeAndInviteUserToCompanyCommand,
     VerifyPhoneCodeCommand,
 )
 from domain.responses.users import GenerateAccessTokenResponse, RefreshAccessTokenResponse, UserResponse
+from domain.types import TPrimaryKey
 
 from .dependencies import get_current_user_pk
 
@@ -50,11 +54,11 @@ async def refresh_access_token(
     return RefreshAccessTokenResponse(**result.dict())
 
 
-@router.post("/create-inactive-user")
-async def create_inactive_user(
-    command: CreateUserCommand,
+@router.post("/signup-user")
+async def signup_user(
+    command: SignUpUserCommand,
 ):
-    """Create inactive user."""
+    """Signup user."""
     await bus.handler(command)
 
 
@@ -117,27 +121,56 @@ async def reset_password(
 
 @router.get("/profile", response_model=UserResponse)
 async def get_profile(
-    current_user_pk: UUID4 = Depends(get_current_user_pk),
+    current_user_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Get profile of authenticated user."""
-    result = await bus.handler(RetrieveUserCommand(pk=current_user_pk), current_user_pk=current_user_pk)
+    result = await bus.handler(ProfileRetrieveCommand(), current_user_pk=current_user_pk)
     return UserResponse(**result.dict())
 
 
 @router.patch("/profile", response_model=UserResponse)
 async def update_profile(
-    command: UpdateUserCommand,
-    current_user_pk: UUID4 = Depends(get_current_user_pk),
+    command: ProfileUpdateCommand,
+    current_user_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Update profile of authenticated user."""
     result = await bus.handler(command, current_user_pk=current_user_pk)
     return UserResponse(**result.dict())
 
 
-@router.delete("/profile", response_model=UserResponse)
+@router.delete("/profile")
 async def delete_profile(
-    current_user_pk: UUID4 = Depends(get_current_user_pk),
+    current_user_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Delete/inactivate profile of authenticated user."""
-    result = await bus.handler(DeleteUserCommand(pk=current_user_pk), current_user_pk=current_user_pk)
+    await bus.handler(ProfileDeleteCommand(), current_user_pk=current_user_pk)
+
+
+@router.patch("/change-password", response_model=UserResponse)
+async def change_password(
+    command: ChangePasswordCommand,
+    current_user_pk: TPrimaryKey = Depends(get_current_user_pk),
+):
+    """Change password of authenticated user."""
+    result = await bus.handler(command, current_user_pk=current_user_pk)
     return UserResponse(**result.dict())
+
+
+@router.post("/send-invitation-code")
+async def send_invitation_code(
+    command: GenerateInvitationCodeCommand,
+    background_tasks: BackgroundTasks,
+    current_user_pk: TPrimaryKey = Depends(get_current_user_pk),
+):
+    """Send email code to verify email."""
+    result = await bus.handler(command, current_user_pk=current_user_pk)
+    send_command = SendInvitationCodeByEmailCommand(invite_user_to_company=result)
+    background_tasks.add_task(bus.handler, send_command)
+
+
+@router.post("/invite-user")
+async def invite_user(
+    command: VerifyInvitationCodeAndInviteUserToCompanyCommand,
+):
+    """Invite user."""
+    await bus.handler(command)

@@ -1,36 +1,42 @@
 import uuid
-from typing import Optional
 
 import jwt
 from httpx import AsyncClient
 
 from bootstrap import bus
+from domain.models.users import User
+from domain.types import TRole
 from settings import JWT_SECRET_KEY
 
 
-async def signup_create_inactive_user(
+async def signup_user(
     async_client: AsyncClient,
     email: str,
+    role: TRole,
     password: str,
-    phone: Optional[str] = "+1 800 444 4444",
-    first_name: Optional[str] = "test first name",
-    last_name: Optional[str] = "test last name",
-) -> dict:
+) -> User:
     response = await async_client.post(
-        "/users/create-inactive-user",
+        "/users/signup-user",
         json={
             "email": email,
-            "phone": phone,
-            "first_name": first_name,
-            "last_name": last_name,
+            "role": role,
             "password": password,
             "repeat_password": password,
         },
     )
     assert response.status_code == 200, response.text
+    async with bus.uow:
+        db_users = await bus.uow.users.all()
+        db_user = db_users[-1]
+    assert db_user.email == email
+    assert db_user.role == role
+    assert await db_user.verify_password(password)
+    assert not db_user.is_active
+    assert not db_user.is_onboarded
+    return db_user
 
 
-async def signup_verify_email(async_client: AsyncClient, email: str) -> dict:
+async def signup_verify_email(async_client: AsyncClient, email: str) -> User:
     response = await async_client.post(
         "/users/send-email-code",
         json={
@@ -55,9 +61,11 @@ async def signup_verify_email(async_client: AsyncClient, email: str) -> dict:
         db_users = await bus.uow.users.all()
         db_user = db_users[-1]
     assert db_user.is_email_verified
+    assert db_user.is_active
+    return db_user
 
 
-async def signup_verify_phone(async_client: AsyncClient, phone: str) -> dict:
+async def signup_verify_phone(async_client: AsyncClient, phone: str) -> User:
     response = await async_client.post(
         "/users/send-phone-code",
         json={
@@ -83,6 +91,7 @@ async def signup_verify_phone(async_client: AsyncClient, phone: str) -> dict:
         db_users = await bus.uow.users.all()
         db_user = db_users[-1]
     assert db_user.is_phone_verified
+    return db_user
 
 
 async def signin_generate_access_token(async_client: AsyncClient, email: str, password: str) -> dict:
@@ -194,8 +203,6 @@ async def update_profile(async_client: AsyncClient, email: str, password: str, d
             "phone": data.get("phone"),
             "first_name": data.get("first_name"),
             "last_name": data.get("last_name"),
-            "password": data.get("password"),
-            "repeat_password": data.get("repeat_password"),
         },
     )
     assert response.status_code == 200, response.text
@@ -212,11 +219,41 @@ async def update_profile(async_client: AsyncClient, email: str, password: str, d
     if "phone" in data:
         assert not db_user.is_phone_verified
 
-    for field in ("email", "phone", "first_name", "last_name", "password"):
-        if field in data and field != "password":
+    for field in (
+        "email",
+        "phone",
+        "first_name",
+        "last_name",
+    ):
+        if field in data:
             assert getattr(db_user, field) == data[field], data[field]
-        if field in data and field == "password":
-            assert await db_user.verify_password(data[field]), data[field]
+
+    return user_data
+
+
+async def change_password(async_client: AsyncClient, email: str, password: str, data: dict) -> dict:
+    response = await signin_generate_access_token(async_client, email, password)
+    access_token = response["access_token"]
+    response = await async_client.patch(
+        "/users/change-password",
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={
+            "password": data.get("password"),
+            "repeat_password": data.get("repeat_password"),
+        },
+    )
+    assert response.status_code == 200, response.text
+    user_data = response.json()
+    for field in ("pk",):
+        assert field in user_data, field
+
+    async with bus.uow:
+        db_user = await bus.uow.users.get(pk=uuid.UUID(user_data["pk"]))
+
+    for field in ("password",):
+        if field in data:
+            assert await db_user.verify_password(data.get("password"))
+            assert await db_user.verify_password(data.get("repeat_password"))
 
     return user_data
 
@@ -226,12 +263,3 @@ async def delete_profile(async_client: AsyncClient, email: str, password: str) -
     access_token = response["access_token"]
     response = await async_client.delete("/users/profile", headers={"Authorization": "Bearer {}".format(access_token)})
     assert response.status_code == 200, response.text
-    user_data = response.json()
-    for field in ("pk",):
-        assert field in user_data, field
-
-    async with bus.uow:
-        db_user = await bus.uow.users.filter(pk=uuid.UUID(user_data["pk"]))
-
-    assert len(db_user) == 0
-    return user_data
