@@ -47,6 +47,7 @@ COMMANDS = {
     users_commands.ProfileUpdateCommand: users_handlers.profile_update_handler,
     users_commands.ProfileRetrieveCommand: users_handlers.profile_retrieve_handler,
     users_commands.ProfileDeleteCommand: users_handlers.profile_delete_handler,
+    users_commands.ChangePasswordCommand: users_handlers.change_password_handler,
     # companies
     employer_companies_commands.EmployerCompanyListCommand: None,
     employer_companies_commands.EmployerCompanyCreateCommand: None,

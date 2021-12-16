@@ -3,11 +3,11 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 import jwt
-from pydantic.types import UUID4
 
 from adapters.email.email import EmailAdapter
 from adapters.sms.sms import SmsAdapter
 from domain.commands.users import (
+    ChangePasswordCommand,
     GenerateAccessTokenCommand,
     GenerateEmailCodeCommand,
     GenerateInvitationCodeCommand,
@@ -29,6 +29,7 @@ from domain.commands.users import (
 )
 from domain.models.users import User
 from domain.responses.users import GenerateAccessTokenResponse, RefreshAccessTokenResponse
+from domain.types import TPrimaryKey
 from service_layer.unit_of_work.db import DBUnitOfWork
 from settings import JWT_ACCESS_TOKEN_EXPIRED_AT, JWT_REFRESH_TOKEN_EXPIRED_AT, JWT_SECRET_KEY
 
@@ -231,7 +232,7 @@ async def generate_reset_password_code_handler(
 async def send_reset_password_code_handler(
     message: SendResetPasswordCodeByEmailCommand,
     email_adapter: Optional[EmailAdapter] = None,
-    current_user_pk: Optional[UUID4] = None,
+    current_user_pk: Optional[TPrimaryKey] = None,
 ) -> None:
     await email_adapter.send(
         message.user.email,
@@ -283,7 +284,7 @@ async def invite_user_handler(
 async def profile_update_handler(
     message: ProfileUpdateCommand,
     uow: Optional[DBUnitOfWork] = None,
-    current_user_pk: Optional[UUID4] = None,
+    current_user_pk: Optional[TPrimaryKey] = None,
 ) -> User:
     async with uow:
         user = await uow.users.get(pk=current_user_pk)
@@ -303,8 +304,6 @@ async def profile_update_handler(
             if message.phone != user.phone:
                 user.is_phone_verified = False
             user.phone = message.phone
-        if message.password:
-            await user.set_password(message.password)
         user.updated_date = datetime.now()
         await uow.users.update(user)
         await uow.commit()
@@ -314,19 +313,33 @@ async def profile_update_handler(
 async def profile_retrieve_handler(
     message: ProfileRetrieveCommand,
     uow: Optional[DBUnitOfWork] = None,
-    current_user_pk: Optional[UUID4] = None,
+    current_user_pk: Optional[TPrimaryKey] = None,
 ) -> User:
     async with uow:
-        user = await uow.users.get(pk=message.pk, is_active=True)
+        user = await uow.users.get(pk=current_user_pk, is_active=True)
     return user
 
 
 async def profile_delete_handler(
     message: ProfileDeleteCommand,
     uow: Optional[DBUnitOfWork] = None,
-    current_user_pk: Optional[UUID4] = None,
-) -> ProfileDeleteCommand:
+    current_user_pk: Optional[TPrimaryKey] = None,
+) -> TPrimaryKey:
     async with uow:
         await uow.users.delete(current_user_pk)
         await uow.commit()
-    return message
+    return current_user_pk
+
+
+async def change_password_handler(
+    message: ChangePasswordCommand,
+    uow: Optional[DBUnitOfWork] = None,
+    current_user_pk: Optional[TPrimaryKey] = None,
+) -> User:
+    async with uow:
+        user = await uow.users.get(pk=current_user_pk)
+        await user.set_password(message.password)
+        user.updated_date = datetime.now()
+        await uow.users.update(user)
+        await uow.commit()
+    return user

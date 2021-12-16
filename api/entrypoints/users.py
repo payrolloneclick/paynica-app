@@ -138,13 +138,12 @@ async def update_profile(
     return UserResponse(**result.dict())
 
 
-@router.delete("/profile", response_model=UserResponse)
+@router.delete("/profile")
 async def delete_profile(
     current_user_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Delete/inactivate profile of authenticated user."""
-    result = await bus.handler(ProfileDeleteCommand(), current_user_pk=current_user_pk)
-    return UserResponse(**result.dict())
+    await bus.handler(ProfileDeleteCommand(), current_user_pk=current_user_pk)
 
 
 @router.patch("/change-password", response_model=UserResponse)

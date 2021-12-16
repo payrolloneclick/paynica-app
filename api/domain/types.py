@@ -25,7 +25,7 @@ class TRole(str, Enum):
 
 TPrimaryKey = UUID4
 TEmail = constr(strip_whitespace=True, to_lower=True, regex=EMAIL_REGEXP)
-TPhone = constr(strip_whitespace=True, to_lower=True)
+TPhone = constr(strip_whitespace=True, to_lower=True, min_length=1)
 TPassword = constr(strip_whitespace=True, min_length=8)
 TEmailCode = constr(strip_whitespace=True, min_length=16)
 TPhoneCode = constr(strip_whitespace=True, min_length=6)

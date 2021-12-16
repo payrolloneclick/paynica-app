@@ -3,7 +3,8 @@ import pytest
 from bootstrap import bus
 from domain.types import TRole
 
-from .scenarios import (
+from .scenarios.users import (
+    change_password,
     delete_profile,
     get_profile,
     reset_password,
@@ -271,16 +272,17 @@ async def test_generate_access_token(async_client):
 
 @pytest.mark.asyncio
 async def test_generate_access_token_4xx(async_client):
+    generate_access_token_url = "/users/generate-access-token"
     await signup_user(async_client, "test@test.com", TRole.EMPLOYER, "password")
     await signup_verify_email(async_client, "test@test.com")
     response = await async_client.post(
-        "/users/generate-access-token",
+        generate_access_token_url,
         json={},
     )
     assert response.status_code == 422, response.text
 
     response = await async_client.post(
-        "/users/generate-access-token",
+        generate_access_token_url,
         json={
             "email": "test@test.com",
         },
@@ -288,7 +290,7 @@ async def test_generate_access_token_4xx(async_client):
     assert response.status_code == 422, response.text
 
     response = await async_client.post(
-        "/users/generate-access-token",
+        generate_access_token_url,
         json={
             "password": "password",
         },
@@ -296,7 +298,7 @@ async def test_generate_access_token_4xx(async_client):
     assert response.status_code == 422, response.text
 
     response = await async_client.post(
-        "/users/generate-access-token",
+        generate_access_token_url,
         json={
             "email": "",
             "password": "password",
@@ -305,7 +307,7 @@ async def test_generate_access_token_4xx(async_client):
     assert response.status_code == 422, response.text
 
     response = await async_client.post(
-        "/users/generate-access-token",
+        generate_access_token_url,
         json={
             "email": "test@test.com",
             "password": "",
@@ -314,7 +316,7 @@ async def test_generate_access_token_4xx(async_client):
     assert response.status_code == 422, response.text
 
     response = await async_client.post(
-        "/users/generate-access-token",
+        generate_access_token_url,
         json={
             "email": "invalid",
             "password": "password",
@@ -323,7 +325,7 @@ async def test_generate_access_token_4xx(async_client):
     assert response.status_code == 422, response.text
 
     response = await async_client.post(
-        "/users/generate-access-token",
+        generate_access_token_url,
         json={
             "email": "wrong@email.com",
             "password": "password",
@@ -332,7 +334,7 @@ async def test_generate_access_token_4xx(async_client):
     assert response.status_code == 404, response.text
 
     response = await async_client.post(
-        "/users/generate-access-token",
+        generate_access_token_url,
         json={
             "email": "test@test.com",
             "password": "wrong_password",
@@ -351,17 +353,18 @@ async def test_refresh_access_token(async_client):
 
 @pytest.mark.asyncio
 async def test_refresh_access_token_4xx(async_client):
+    refresh_access_token_url = "/users/refresh-access-token"
     await signup_user(async_client, "test@test.com", TRole.EMPLOYER, "password")
     await signup_verify_email(async_client, "test@test.com")
     await signin_generate_access_token(async_client, "test@test.com", "password")
     response = await async_client.post(
-        "/users/refresh-access-token",
+        refresh_access_token_url,
         json={},
     )
     assert response.status_code == 422, response.text
 
     response = await async_client.post(
-        "/users/refresh-access-token",
+        refresh_access_token_url,
         json={
             "refresh_token": "",
         },
@@ -369,7 +372,7 @@ async def test_refresh_access_token_4xx(async_client):
     assert response.status_code == 422, response.text
 
     response = await async_client.post(
-        "/users/refresh-access-token",
+        refresh_access_token_url,
         json={
             "refresh_token": "invalid_token",
         },
@@ -379,7 +382,7 @@ async def test_refresh_access_token_4xx(async_client):
 
 @pytest.mark.asyncio
 async def test_signin_reset_password(async_client):
-    await signup_user(async_client, "test@test.com", "password", phone="+1 800 444 4444")
+    await signup_user(async_client, "test@test.com", TRole.EMPLOYER, "password")
     await signup_verify_email(async_client, "test@test.com")
     await reset_password(async_client, "test@test.com", "password", "new_password")
     response = await signin_generate_access_token(async_client, "test@test.com", "new_password")
@@ -388,10 +391,12 @@ async def test_signin_reset_password(async_client):
 
 @pytest.mark.asyncio
 async def test_signin_reset_password_4xx(async_client):
-    await signup_user(async_client, "test@test.com", "password", phone="+1 800 444 4444")
+    send_password_code_url = "/users/send-password-code"
+    reset_password = "/users/reset-password"
+    await signup_user(async_client, "test@test.com", TRole.EMPLOYER, "password")
     await signup_verify_email(async_client, "test@test.com")
     response = await async_client.post(
-        "/users/send-password-code",
+        send_password_code_url,
         json={
             "email": "invalid_email",
         },
@@ -399,13 +404,13 @@ async def test_signin_reset_password_4xx(async_client):
     assert response.status_code == 422, response.text
 
     response = await async_client.post(
-        "/users/send-password-code",
+        send_password_code_url,
         json={},
     )
     assert response.status_code == 422, response.text
 
     response = await async_client.post(
-        "/users/send-password-code",
+        send_password_code_url,
         json={
             "email": "test@test.com",
         },
@@ -417,7 +422,7 @@ async def test_signin_reset_password_4xx(async_client):
 
     password_code = db_user.password_code
     response = await async_client.post(
-        "/users/reset-password",
+        reset_password,
         json={
             "password_code": "invalid_code",
             "password": "new_password",
@@ -427,7 +432,7 @@ async def test_signin_reset_password_4xx(async_client):
     assert response.status_code == 422, response.text
 
     response = await async_client.post(
-        "/users/reset-password",
+        reset_password,
         json={
             "password_code": "a" * 16,
             "password": "new_password",
@@ -438,7 +443,7 @@ async def test_signin_reset_password_4xx(async_client):
 
     password_code = db_user.password_code
     response = await async_client.post(
-        "/users/reset-password",
+        reset_password,
         json={
             "password_code": password_code,
             "password": "new_password",
@@ -449,7 +454,7 @@ async def test_signin_reset_password_4xx(async_client):
 
     password_code = db_user.password_code
     response = await async_client.post(
-        "/users/reset-password",
+        reset_password,
         json={
             "password_code": password_code,
             "password": "",
@@ -460,7 +465,7 @@ async def test_signin_reset_password_4xx(async_client):
 
     password_code = db_user.password_code
     response = await async_client.post(
-        "/users/reset-password",
+        reset_password,
         json={
             "password_code": password_code,
             "password": "new_password",
@@ -471,7 +476,7 @@ async def test_signin_reset_password_4xx(async_client):
 
     password_code = db_user.password_code
     response = await async_client.post(
-        "/users/reset-password",
+        reset_password,
         json={
             "password_code": password_code,
             "password": "",
@@ -516,8 +521,6 @@ async def test_update_profile(async_client):
             "phone": "+1 800 444 4441",
             "first_name": "new_first_name",
             "last_name": "new_last_name",
-            "password": "new_password",
-            "repeat_password": "new_password",
         },
     )
 
@@ -532,8 +535,6 @@ async def test_update_profile_4xx(async_client):
         "phone": "+1 800 444 4441",
         "first_name": "new_first_name",
         "last_name": "new_last_name",
-        "password": "new_password",
-        "repeat_password": "new_password",
     }
 
     response = await async_client.patch(
@@ -561,8 +562,6 @@ async def test_update_profile_4xx(async_client):
     )
     assert response.status_code == 422, response.text
 
-    response = await signin_generate_access_token(async_client, "test@test.com", "password")
-    access_token = response["access_token"]
     response = await async_client.patch(
         "/users/profile",
         headers={"Authorization": "Bearer {}".format(access_token)},
@@ -573,20 +572,10 @@ async def test_update_profile_4xx(async_client):
     )
     assert response.status_code == 422, response.text
 
-    response = await signin_generate_access_token(async_client, "test@test.com", "password")
-    access_token = response["access_token"]
-    response = await async_client.patch(
-        "/users/profile",
-        headers={"Authorization": "Bearer {}".format(access_token)},
-        json={
-            **data,
-            "password": "new_password",
-            "repeat_password": "invalid_password",
-        },
-    )
-    assert response.status_code == 422, response.text
-
-    await signup_user(async_client, "another_test@test.com", "password", phone="+1 800 444 4440")
+    db_user = await signup_user(async_client, "another_test@test.com", TRole.EMPLOYER, "password")
+    async with bus.uow:
+        db_user.phone = "+1 800 444 4440"
+        await bus.uow.users.update(db_user)
     response = await async_client.patch(
         "/users/profile",
         headers={"Authorization": "Bearer {}".format(access_token)},
@@ -606,6 +595,76 @@ async def test_update_profile_4xx(async_client):
         },
     )
     assert response.status_code == 400, response.text
+
+
+@pytest.mark.asyncio
+async def test_change_password(async_client):
+    await signup_user(async_client, "test@test.com", TRole.EMPLOYER, "password")
+    await signup_verify_email(async_client, "test@test.com")
+    await change_password(
+        async_client,
+        "test@test.com",
+        "password",
+        {
+            "password": "new_password",
+            "repeat_password": "new_password",
+        },
+    )
+
+
+@pytest.mark.asyncio
+async def test_change_password_4xx(async_client):
+    change_password_url = "/users/change-password"
+    await signup_user(async_client, "test@test.com", TRole.EMPLOYER, "password")
+    await signup_verify_email(async_client, "test@test.com")
+
+    data = {
+        "password": "new_password",
+        "repeat_password": "new_password",
+    }
+
+    response = await async_client.patch(
+        change_password_url,
+        json=data,
+    )
+    assert response.status_code == 403, response.text
+
+    response = await async_client.patch(
+        change_password_url,
+        headers={"Authorization": "Bearer {}".format("invalid_access_token")},
+        json=data,
+    )
+    assert response.status_code == 401, response.text
+
+    response = await signin_generate_access_token(async_client, "test@test.com", "password")
+    access_token = response["access_token"]
+
+    response = await async_client.patch(
+        change_password_url,
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={},
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.patch(
+        change_password_url,
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={
+            "password": "",
+            "repeat_password": "",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.patch(
+        change_password_url,
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={
+            **data,
+            "repeat_password": "invalid_password",
+        },
+    )
+    assert response.status_code == 422, response.text
 
 
 @pytest.mark.asyncio
@@ -631,3 +690,6 @@ async def test_delete_profile_4xx(async_client):
         "/users/profile", headers={"Authorization": "Bearer {}".format("invalid_access_token")}
     )
     assert response.status_code == 401, response.text
+
+
+# TODO invitation tests
