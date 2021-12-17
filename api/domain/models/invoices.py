@@ -33,6 +33,6 @@ class Invoice(AbstractModel):
 class InvoiceItem(AbstractModel):
     invoice_pk: TPrimaryKey
     invoice: Optional[Invoice]
-    price: Decimal
+    amount: Decimal
     quantity: int
     descripion: constr(strip_whitespace=True)
