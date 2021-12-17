@@ -11,6 +11,7 @@ from ..generic import AbstractCommand
 class ContractorInvoiceListCommand(AbstractCommand):
     offset: Optional[int] = 0
     limit: Optional[int] = 25
+    for_company_pk: TPrimaryKey
 
 
 class InvoiceItemCreate(AbstractCommand):
@@ -27,6 +28,7 @@ class InvoiceItemUpdate(AbstractCommand):
 
 
 class ContractorInvoiceCreateCommand(AbstractCommand):
+    for_company_pk: TPrimaryKey
     recipient_account_pk: TPrimaryKey
     items: List[InvoiceItemCreate]
 
