@@ -15,6 +15,7 @@ from domain.commands.employer import companies as employer_companies_commands
 from domain.commands.employer import invoices as employer_invoices_commands
 from domain.commands.employer import operations as employer_operations_commands
 from domain.responses.generic import AbstractReponse
+from service_layer.exceptions import ServiceException
 from service_layer.handlers import users as users_handlers
 from service_layer.handlers.employer import companies as employer_companies_handlers
 from service_layer.handlers.generic import AbstractMessage
@@ -117,7 +118,7 @@ class MessageBus(AbstractMessageBus):
         handlers = COMMANDS
         handler_fn = handlers.get(message_type)
         if not handler_fn:
-            raise Exception
+            raise ServiceException(detail=f"Unsupported message type {message_type}")
         return await handler_fn(
             message,
             **filter_dependencies(
@@ -128,5 +129,5 @@ class MessageBus(AbstractMessageBus):
                     email_adapter=self.email_adapter,
                     current_user_pk=current_user_pk,
                 ),
-            )
+            ),
         )
