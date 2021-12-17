@@ -25,7 +25,7 @@ from domain.commands.users import (
 from domain.responses.users import GenerateAccessTokenResponse, RefreshAccessTokenResponse, UserResponse
 from domain.types import TPrimaryKey
 
-from .dependencies import get_current_employer_pk, get_current_user_pk
+from .dependencies import get_current_user_pk
 
 router = APIRouter(
     prefix="/users",
@@ -160,7 +160,7 @@ async def change_password(
 async def send_invitation_code(
     command: GenerateInvitationCodeCommand,
     background_tasks: BackgroundTasks,
-    current_employer_pk: TPrimaryKey = Depends(get_current_employer_pk),
+    current_employer_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Send email code to verify email. Only employer can invite to companies."""
     result = await bus.handler(command, current_user_pk=current_employer_pk)

@@ -14,7 +14,7 @@ from domain.responses.invoices import InvoiceResponse
 from domain.types import TPrimaryKey, TSortByDirection
 from settings import DEFAULT_LIMIT
 
-from ..dependencies import get_current_contractor_pk
+from ..dependencies import get_current_user_pk
 
 router = APIRouter(
     prefix="/contractor/invoices",
@@ -30,7 +30,7 @@ async def get_invoices(
     search: Optional[str] = None,
     sort_by_field: Optional[str] = None,
     sort_by_direction: Optional[TSortByDirection] = TSortByDirection.DESC,
-    current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
+    current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Get invoices list for authenticated contractor."""
     command = ContractorInvoiceListCommand()
@@ -47,7 +47,7 @@ async def get_invoices(
 @router.get("/{invoice_pk}", response_model=InvoiceResponse)
 async def get_invoice(
     invoice_pk: TPrimaryKey,
-    current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
+    current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Get an invoice for authenticated contractor."""
     command = ContractorInvoiceRetrieveCommand(invoice_pk=invoice_pk)
@@ -58,7 +58,7 @@ async def get_invoice(
 @router.post("/", response_model=InvoiceResponse)
 async def create_invoice(
     command: ContractorInvoiceCreateCommand,
-    current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
+    current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Create an invoice for authenticated contractor."""
     result = await bus.handler(command, current_user_pk=current_contractor_pk)
@@ -69,7 +69,7 @@ async def create_invoice(
 async def update_invoice(
     invoice_pk: TPrimaryKey,
     command: ContractorInvoiceUpdateCommand,
-    current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
+    current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Update an invoice for authenticated contractor."""
     command.invoice_pk = invoice_pk
@@ -80,7 +80,7 @@ async def update_invoice(
 @router.delete("/{invoice_pk}")
 async def delete_invoice(
     invoice_pk: TPrimaryKey,
-    current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
+    current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Delete/inactivate an invoice for authenticated contractor."""
     command = ContractorInvoiceDeleteCommand(invoice_pk=invoice_pk)

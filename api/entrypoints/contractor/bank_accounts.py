@@ -14,7 +14,7 @@ from domain.responses.bank_accounts import RecipientBankAccountResponse
 from domain.types import TPrimaryKey, TSortByDirection
 from settings import DEFAULT_LIMIT
 
-from ..dependencies import get_current_contractor_pk
+from ..dependencies import get_current_user_pk
 
 router = APIRouter(
     prefix="/contractor/recipient-bank-accounts",
@@ -30,7 +30,7 @@ async def get_recipient_bank_accounts(
     search: Optional[str] = None,
     sort_by_field: Optional[str] = None,
     sort_by_direction: Optional[TSortByDirection] = TSortByDirection.DESC,
-    current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
+    current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Get recipient bank accounts list for authenticated contractor."""
     command = ContractorRecipientBankAccountListCommand()
@@ -47,7 +47,7 @@ async def get_recipient_bank_accounts(
 @router.get("/{recipient_bank_account_pk}", response_model=RecipientBankAccountResponse)
 async def get_recipient_bank_account(
     recipient_bank_account_pk: TPrimaryKey,
-    current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
+    current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Get a recipient bank account for authenticated contractor."""
     command = ContractorRecipientBankAccountRetrieveCommand(recipient_bank_account_pk=recipient_bank_account_pk)
@@ -58,7 +58,7 @@ async def get_recipient_bank_account(
 @router.post("/", response_model=RecipientBankAccountResponse)
 async def create_recipient_bank_account(
     command: ContractorRecipientBankAccountCreateCommand,
-    current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
+    current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Create a recipient bank account for authenticated contractor."""
     result = await bus.handler(command, current_user_pk=current_contractor_pk)
@@ -69,7 +69,7 @@ async def create_recipient_bank_account(
 async def update_recipient_bank_account(
     recipient_bank_account_pk: TPrimaryKey,
     command: ContractorRecipientBankAccountUpdateCommand,
-    current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
+    current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Update a recipient bank account for authenticated contractor."""
     command.recipient_bank_account_pk = recipient_bank_account_pk
@@ -80,7 +80,7 @@ async def update_recipient_bank_account(
 @router.delete("/{recipient_bank_account_pk}")
 async def delete_recipient_bank_account(
     recipient_bank_account_pk: TPrimaryKey,
-    current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
+    current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Delete/inactivate a recipient bank account for authenticated contractor."""
     command = ContractorRecipientBankAccountDeleteCommand(recipient_bank_account_pk=recipient_bank_account_pk)

@@ -8,7 +8,7 @@ from domain.responses.operations import OperationResponse
 from domain.types import TPrimaryKey, TSortByDirection
 from settings import DEFAULT_LIMIT
 
-from ..dependencies import get_current_employer_pk
+from ..dependencies import get_current_user_pk
 
 router = APIRouter(
     prefix="/employer/operations",
@@ -24,7 +24,7 @@ async def get_operations(
     search: Optional[str] = None,
     sort_by_field: Optional[str] = None,
     sort_by_direction: Optional[TSortByDirection] = TSortByDirection.DESC,
-    current_employer_pk: TPrimaryKey = Depends(get_current_employer_pk),
+    current_employer_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Get operations for authenticated employer."""
     command = EmployerOperationListCommand()
@@ -39,7 +39,7 @@ async def get_operations(
 
 
 @router.get("/{operation_pk}", response_model=OperationResponse)
-async def get_operation(operation_pk: TPrimaryKey, current_employer_pk: TPrimaryKey = Depends(get_current_employer_pk)):
+async def get_operation(operation_pk: TPrimaryKey, current_employer_pk: TPrimaryKey = Depends(get_current_user_pk)):
     """Get an operation for authenticated employer."""
     result = await bus.handler(
         EmployerOperationRetrieveCommand(operation_pk=operation_pk), current_user_pk=current_employer_pk

@@ -12,7 +12,7 @@ from domain.responses.companies import CompanyResponse
 from domain.types import TPrimaryKey, TSortByDirection
 from settings import DEFAULT_LIMIT
 
-from ..dependencies import get_current_contractor_pk
+from ..dependencies import get_current_user_pk
 
 router = APIRouter(
     prefix="/contractor/companies",
@@ -27,7 +27,7 @@ async def get_companies(
     search: Optional[str] = None,
     sort_by_field: Optional[str] = None,
     sort_by_direction: Optional[TSortByDirection] = TSortByDirection.DESC,
-    current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
+    current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Get companies list for authenticated contractor."""
     command = ContractorCompanyListCommand()
@@ -43,7 +43,7 @@ async def get_companies(
 @router.get("/{company_pk}", response_model=CompanyResponse)
 async def get_company(
     company_pk: TPrimaryKey,
-    current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
+    current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Get a company for authenticated contractor."""
     command = ContractorCompanyRetrieveCommand(company_pk=company_pk)
@@ -54,7 +54,7 @@ async def get_company(
 @router.post("/{company_pk}/leave")
 async def leave_company(
     company_pk: TPrimaryKey,
-    current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
+    current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Leave company for authenticated contractor."""
     command = ContractorCompanyLeaveCommand(company_pk=company_pk)
