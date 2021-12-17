@@ -6,12 +6,6 @@ clean:
 	rm -rf .coverage
 
 
-.PHONY: install
-install:
-	pip install -r requirements/dev.txt
-	pre-commit install
-
-
 .PHONY: start
 start:
 	uvicorn main:app --reload --port=8080
@@ -33,4 +27,3 @@ lint:
 .PHONY: test
 test:
 	ENV_FILE=tmpl.env pytest --cov=. --cov-report=term --cov-report=html .
-

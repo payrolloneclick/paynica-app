@@ -22,6 +22,30 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
+      - id: admin-linters-fix
+        name: Admin Linters Fix
+        entry: bash -c 'cd admin && make fix'
+        language: system
+        types: [javascript]
+        pass_filenames: false
+      - id: admin-linters
+        name: Admin Linters
+        entry: bash -c 'cd admin && make lint'
+        language: system
+        types: [javascript]
+        pass_filenames: false
+      - id: app-linters-fix
+        name: App Linters Fix
+        entry: bash -c 'cd app && make fix'
+        language: system
+        types: [javascript]
+        pass_filenames: false
+      - id: app-linters
+        name: App Linters
+        entry: bash -c 'cd app && make lint'
+        language: system
+        types: [javascript]
+        pass_filenames: false
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.0.1
