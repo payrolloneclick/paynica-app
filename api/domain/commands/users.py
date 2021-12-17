@@ -101,6 +101,7 @@ class ProfileUpdateCommand(AbstractCommand):
     phone: Optional[TPhone]
     first_name: Optional[constr(strip_whitespace=True)]
     last_name: Optional[constr(strip_whitespace=True)]
+    is_onboarded: Optional[bool]
 
     @validator("phone")
     def phone_validator(cls, v):

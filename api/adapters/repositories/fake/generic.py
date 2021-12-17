@@ -30,6 +30,11 @@ class AbstractFakeRepository(AbstractRepository):
             )
         return objs[0]
 
+    async def list(self, **kwargs) -> List[BaseModel]:
+        objs = await self.all()
+        # TODO
+        return objs
+
     async def filter(self, **kwargs) -> List[BaseModel]:
         objs = await self.all()
         for key in kwargs:

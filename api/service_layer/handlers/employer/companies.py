@@ -37,13 +37,13 @@ async def company_create_handler(
             pk=uuid4(),
             name=message.name,
             owner_pk=current_user_pk,
-            created_date=datetime.now(),
+            created_date=datetime.utcnow(),
         )
         company_m2m_employer = CompanyM2MEmployer(
             pk=uuid4(),
             company_pk=company.pk,
             employer_pk=current_user_pk,
-            created_date=datetime.now(),
+            created_date=datetime.utcnow(),
         )
         await uow.companies.add(company)
         await uow.companies_m2m_employers.add(company_m2m_employer)

@@ -120,7 +120,7 @@ async def test_signup_4xx(async_client):
             "role": TRole.CONTRACTOR,
         },
     )
-    assert response.status_code == 400, response.text
+    assert response.status_code == 422, response.text
 
     # activate user - is_active = True
     await signup_verify_email(async_client, "test@test.com")
@@ -130,7 +130,7 @@ async def test_signup_4xx(async_client):
         url,
         json=data,
     )
-    assert response.status_code == 400, response.text
+    assert response.status_code == 422, response.text
 
 
 @pytest.mark.asyncio
@@ -162,7 +162,7 @@ async def test_signup_verify_email_4xx(async_client):
             "email": "active_test@test.com",
         },
     )
-    assert response.status_code == 400, response.text
+    assert response.status_code == 422, response.text
 
     response = await async_client.post(
         send_email_code_url,
@@ -243,7 +243,7 @@ async def test_signup_verify_phone_4xx(async_client):
             "phone": "+1 800 444 4440",  # already verified
         },
     )
-    assert response.status_code == 400, response.text
+    assert response.status_code == 422, response.text
 
     response = await async_client.post(
         send_phone_code_url,
@@ -619,7 +619,7 @@ async def test_update_profile_4xx(async_client):
             "email": "another_test@test.com",
         },
     )
-    assert response.status_code == 400, response.text
+    assert response.status_code == 422, response.text
 
     response = await async_client.patch(
         "/users/profile",
@@ -629,7 +629,7 @@ async def test_update_profile_4xx(async_client):
             "phone": "+1 800 444 4440",
         },
     )
-    assert response.status_code == 400, response.text
+    assert response.status_code == 422, response.text
 
 
 @pytest.mark.asyncio
@@ -810,7 +810,7 @@ async def test_invite_user_4xx(async_client):
         headers={"Authorization": "Bearer {}".format(access_token)},
         json={**data, "company_pk": str(uuid.uuid4())},
     )
-    assert response.status_code == 400, response.text
+    assert response.status_code == 422, response.text
 
     response = await async_client.post(
         invite_user_url,

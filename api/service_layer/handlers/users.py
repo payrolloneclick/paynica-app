@@ -144,7 +144,7 @@ async def signup_user_handler(
                 role=message.role,
                 is_active=False,
                 is_onboarded=False,
-                created_date=datetime.now(),
+                created_date=datetime.utcnow(),
             )
             await user.set_password(message.password)
             await uow.users.add(user)
@@ -161,7 +161,7 @@ async def generate_email_code_handler(
         if user.is_email_verified:
             raise ValidationException(detail="Email is already verified")
         await user.randomly_set_email_code()
-        user.updated_date = datetime.now()
+        user.updated_date = datetime.utcnow()
         await uow.users.update(user)
         await uow.commit()
     return user
@@ -186,7 +186,7 @@ async def verify_email_code_handler(
         user = await uow.users.get(email_code=message.email_code)
         user.is_email_verified = True
         user.is_active = True
-        user.updated_date = datetime.now()
+        user.updated_date = datetime.utcnow()
         await uow.users.update(user)
         await uow.commit()
     return user
@@ -201,7 +201,7 @@ async def generate_phone_code_handler(
         if user.is_phone_verified:
             raise ValidationException(detail="Phone is already verified")
         await user.randomly_set_phone_code()
-        user.updated_date = datetime.now()
+        user.updated_date = datetime.utcnow()
         await uow.users.update(user)
         await uow.commit()
     return user
@@ -225,7 +225,7 @@ async def verify_phone_code_handler(
         user = await uow.users.get(phone_code=message.phone_code)
         user.is_phone_verified = True
         user.is_active = True
-        user.updated_date = datetime.now()
+        user.updated_date = datetime.utcnow()
         await uow.users.update(user)
         await uow.commit()
     return user
@@ -238,7 +238,7 @@ async def generate_reset_password_code_handler(
     async with uow:
         user = await uow.users.get(email=message.email)
         await user.randomly_set_password_code()
-        user.updated_date = datetime.now()
+        user.updated_date = datetime.utcnow()
         await uow.users.update(user)
         await uow.commit()
     return user
@@ -262,7 +262,7 @@ async def reset_password_handler(
     async with uow:
         user = await uow.users.get(password_code=message.password_code)
         await user.set_password(message.password)
-        user.updated_date = datetime.now()
+        user.updated_date = datetime.utcnow()
         await uow.users.update(user)
         await uow.commit()
     return user
@@ -278,7 +278,7 @@ async def generate_invitation_code_handler(
         sender_pk=current_user_pk,
         company_pk=message.company_pk,
         email=message.email,
-        created_date=datetime.now(),
+        created_date=datetime.utcnow(),
     )
     async with uow:
         if not await uow.companies.exists(pk=message.company_pk):
@@ -301,7 +301,7 @@ async def generate_invitation_code_handler(
                 role=TRole.CONTRACTOR,
                 is_active=False,
                 is_onboarded=False,
-                created_date=datetime.now(),
+                created_date=datetime.utcnow(),
             )
             await uow.users.add(user)
         if user.role == TRole.EMPLOYER and await uow.companies_m2m_employers.exists(
@@ -343,7 +343,7 @@ async def invite_user_handler(
                 pk=uuid4(),
                 company_pk=invite_user_to_company.company_pk,
                 employer_pk=user.pk,
-                created_date=datetime.now(),
+                created_date=datetime.utcnow(),
             )
             await uow.companies_m2m_employers.add(company_m2m_employer)
         if user.role == TRole.CONTRACTOR:
@@ -351,7 +351,7 @@ async def invite_user_handler(
                 pk=uuid4(),
                 company_pk=invite_user_to_company.company_pk,
                 contractor_pk=user.pk,
-                created_date=datetime.now(),
+                created_date=datetime.utcnow(),
             )
             await uow.companies_m2m_contractors.add(company_m2m_contractor)
         await uow.invite_users_to_companies.delete(invite_user_to_company.pk)
@@ -370,6 +370,8 @@ async def profile_update_handler(
             user.first_name = message.first_name
         if message.last_name:
             user.last_name = message.last_name
+        if message.is_onboarded:
+            user.is_onboarded = message.is_onboarded
         if message.email:
             if await uow.users.exists(email=message.email):
                 raise ValidationException(detail="User with this email already exists")
@@ -382,7 +384,7 @@ async def profile_update_handler(
             if message.phone != user.phone:
                 user.is_phone_verified = False
             user.phone = message.phone
-        user.updated_date = datetime.now()
+        user.updated_date = datetime.utcnow()
         await uow.users.update(user)
         await uow.commit()
     return user
@@ -417,7 +419,7 @@ async def change_password_handler(
     async with uow:
         user = await uow.users.get(pk=current_user_pk)
         await user.set_password(message.password)
-        user.updated_date = datetime.now()
+        user.updated_date = datetime.utcnow()
         await uow.users.update(user)
         await uow.commit()
     return user

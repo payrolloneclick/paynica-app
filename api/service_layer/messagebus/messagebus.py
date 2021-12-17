@@ -5,6 +5,7 @@ from pydantic.types import UUID4
 
 from adapters.email.generic import AbstractEmailAdapter
 from adapters.sms.generic import AbstractSmsAdapter
+from admin.resources.generic import AbstractAdminResources
 from domain.commands import users as users_commands
 from domain.commands.contractor import bank_accounts as contractor_bank_accounts_commands
 from domain.commands.contractor import companies as contractor_companies_commands
@@ -103,10 +104,12 @@ class MessageBus(AbstractMessageBus):
         uow: AbstractUnitOfWork,
         sms_adapter: AbstractSmsAdapter,
         email_adapter: AbstractEmailAdapter,
+        admin_resources: AbstractAdminResources,
     ) -> None:
         self.uow = uow
         self.sms_adapter = sms_adapter
         self.email_adapter = email_adapter
+        self.admin_resources = admin_resources
 
     async def clean(self) -> None:
         await self.uow.clean()

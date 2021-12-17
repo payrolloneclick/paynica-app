@@ -53,7 +53,7 @@ async def test_create_company_4xx(async_client):
             "name": "",
         },
     )
-    assert response.status_code == 400, response.text
+    assert response.status_code == 422, response.text
 
     response = await async_client.post(
         create_company_url,
@@ -72,7 +72,7 @@ async def test_create_company_4xx(async_client):
         },
     )
     # same name for this user
-    assert response.status_code == 400, response.text
+    assert response.status_code == 422, response.text
 
     await signup_user(async_client, "contractor@test.com", TRole.CONTRACTOR, "password")
     await signup_verify_email(async_client, "contractor@test.com")

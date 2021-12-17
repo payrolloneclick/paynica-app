@@ -11,7 +11,7 @@ from domain.commands.contractor.invoices import (
     ContractorInvoiceUpdateCommand,
 )
 from domain.responses.invoices import InvoiceResponse
-from domain.types import TPrimaryKey, TSortByDirection
+from domain.types import TPrimaryKey
 from settings import DEFAULT_LIMIT
 
 from ..dependencies import get_current_user_pk
@@ -28,8 +28,7 @@ async def get_invoices(
     offset: Optional[int] = 0,
     limit: Optional[int] = DEFAULT_LIMIT,
     search: Optional[str] = None,
-    sort_by_field: Optional[str] = None,
-    sort_by_direction: Optional[TSortByDirection] = TSortByDirection.DESC,
+    sort_by: Optional[str] = None,
     current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
 ):
     """Get invoices list for authenticated contractor."""
@@ -38,8 +37,7 @@ async def get_invoices(
     command.offset = offset
     command.limit = limit
     command.search = search
-    command.sort_by_field = sort_by_field
-    command.sort_by_direction = sort_by_direction
+    command.sort_by = sort_by
     result = await bus.handler(command, current_user_pk=current_contractor_pk)
     return [InvoiceResponse(**o.dict()) for o in result]
 

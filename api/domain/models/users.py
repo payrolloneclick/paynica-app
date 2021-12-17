@@ -30,6 +30,7 @@ class User(AbstractModel):
     is_email_verified: Optional[bool] = False
     is_active: Optional[bool] = False
     is_onboarded: Optional[bool] = False
+    is_superuser: Optional[bool] = False
 
     async def _get_password_hash(self, password: str, salt: bytes) -> bytes:
         return hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 10000)

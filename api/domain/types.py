@@ -5,11 +5,6 @@ from pydantic.types import UUID4, constr
 EMAIL_REGEXP = r"^[\w\.\+\-]+\@[\w]+\.[a-z]{2,3}$"
 
 
-class TSortByDirection(str, Enum):
-    ASC = "ASC"
-    DESC = "DESC"
-
-
 class TCurrency(str, Enum):
     USD = "USD"
     GBR = "GBP"
