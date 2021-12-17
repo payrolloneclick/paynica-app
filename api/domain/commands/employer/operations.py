@@ -1,13 +1,9 @@
-from typing import Optional
-
 from domain.types import TPrimaryKey
 
-from ..generic import AbstractCommand
+from ..generic import AbstractCommand, AbstractListCommand
 
 
-class EmployerOperationListCommand(AbstractCommand):
-    offset: Optional[int] = 0
-    limit: Optional[int] = 25
+class EmployerOperationListCommand(AbstractListCommand):
     operation_owner_company_pk: TPrimaryKey
 
 

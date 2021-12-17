@@ -1,11 +1,12 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 
 from bootstrap import bus
 from domain.commands.employer.operations import EmployerOperationListCommand, EmployerOperationRetrieveCommand
 from domain.responses.operations import OperationResponse
-from domain.types import TPrimaryKey
+from domain.types import TPrimaryKey, TSortByDirection
+from settings import DEFAULT_LIMIT
 
 from ..dependencies import get_current_employer_pk
 
@@ -17,10 +18,21 @@ router = APIRouter(
 
 @router.get("/", response_model=List[OperationResponse])
 async def get_operations(
+    offset: Optional[int] = 0,
+    limit: Optional[int] = DEFAULT_LIMIT,
+    search: Optional[str] = None,
+    sort_by_field: Optional[str] = None,
+    sort_by_direction: Optional[TSortByDirection] = TSortByDirection.DESC,
     current_employer_pk: TPrimaryKey = Depends(get_current_employer_pk),
 ):
     """Get operations for authenticated employer."""
-    result = await bus.handler(EmployerOperationListCommand(), current_user_pk=current_employer_pk)
+    command = EmployerOperationListCommand()
+    command.offset = offset
+    command.limit = limit
+    command.search = search
+    command.sort_by_field = sort_by_field
+    command.sort_by_direction = sort_by_direction
+    result = await bus.handler(command, current_user_pk=current_employer_pk)
     return [OperationResponse(**o.dict()) for o in result]
 
 

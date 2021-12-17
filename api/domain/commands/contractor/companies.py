@@ -1,13 +1,10 @@
-from typing import Optional
-
 from domain.types import TPrimaryKey
 
-from ..generic import AbstractCommand
+from ..generic import AbstractCommand, AbstractListCommand
 
 
-class ContractorCompanyListCommand(AbstractCommand):
-    offset: Optional[int] = 0
-    limit: Optional[int] = 25
+class ContractorCompanyListCommand(AbstractListCommand):
+    pass
 
 
 class ContractorCompanyRetrieveCommand(AbstractCommand):

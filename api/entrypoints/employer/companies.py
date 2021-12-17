@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 
@@ -12,7 +12,8 @@ from domain.commands.employer.companies import (
     EmployerCompanyUpdateCommand,
 )
 from domain.responses.companies import CompanyResponse
-from domain.types import TPrimaryKey
+from domain.types import TPrimaryKey, TSortByDirection
+from settings import DEFAULT_LIMIT
 
 from ..dependencies import get_current_employer_pk
 
@@ -24,10 +25,21 @@ router = APIRouter(
 
 @router.get("", response_model=List[CompanyResponse])
 async def get_companies(
+    offset: Optional[int] = 0,
+    limit: Optional[int] = DEFAULT_LIMIT,
+    search: Optional[str] = None,
+    sort_by_field: Optional[str] = None,
+    sort_by_direction: Optional[TSortByDirection] = TSortByDirection.DESC,
     current_employer_pk: TPrimaryKey = Depends(get_current_employer_pk),
 ):
     """Get companies list for authenticated employer."""
-    result = await bus.handler(EmployerCompanyListCommand(), current_user_pk=current_employer_pk)
+    command = EmployerCompanyListCommand()
+    command.offset = offset
+    command.limit = limit
+    command.search = search
+    command.sort_by_field = sort_by_field
+    command.sort_by_direction = sort_by_direction
+    result = await bus.handler(command, current_user_pk=current_employer_pk)
     return [CompanyResponse(**o.dict()) for o in result]
 
 

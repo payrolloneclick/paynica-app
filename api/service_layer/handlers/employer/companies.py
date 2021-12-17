@@ -1,12 +1,20 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 from uuid import uuid4
 
-from domain.commands.employer.companies import EmployerCompanyCreateCommand
+from domain.commands.employer.companies import EmployerCompanyCreateCommand, EmployerCompanyListCommand
 from domain.models.companies import Company, CompanyM2MEmployer
 from domain.types import TPrimaryKey, TRole
 from service_layer.exceptions import PermissionDeniedException
 from service_layer.unit_of_work.db import DBUnitOfWork
+
+
+async def company_list_handler(
+    message: EmployerCompanyListCommand,
+    uow: Optional[DBUnitOfWork] = None,
+    current_user_pk: Optional[TPrimaryKey] = None,
+) -> List[Company]:
+    return []
 
 
 async def company_create_handler(

@@ -2,12 +2,10 @@ from typing import Optional
 
 from domain.types import TCountry, TCurrency, TPrimaryKey
 
-from ..generic import AbstractCommand
+from ..generic import AbstractCommand, AbstractListCommand
 
 
-class EmployerSenderBankAccountListCommand(AbstractCommand):
-    offset: Optional[int] = 0
-    limit: Optional[int] = 25
+class EmployerSenderBankAccountListCommand(AbstractListCommand):
     sender_owner_company_pk: TPrimaryKey
 
 

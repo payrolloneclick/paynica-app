@@ -4,12 +4,11 @@ from pydantic.types import constr
 
 from domain.types import TPrimaryKey
 
-from ..generic import AbstractCommand
+from ..generic import AbstractCommand, AbstractListCommand
 
 
-class EmployerCompanyListCommand(AbstractCommand):
-    offset: Optional[int] = 0
-    limit: Optional[int] = 25
+class EmployerCompanyListCommand(AbstractListCommand):
+    pass
 
 
 class EmployerCompanyCreateCommand(AbstractCommand):

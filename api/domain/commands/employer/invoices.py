@@ -1,13 +1,11 @@
-from typing import List, Optional
+from typing import List
 
 from domain.types import TPrimaryKey
 
-from ..generic import AbstractCommand
+from ..generic import AbstractCommand, AbstractListCommand
 
 
-class EmployerInvoiceListCommand(AbstractCommand):
-    offset: Optional[int] = 0
-    limit: Optional[int] = 25
+class EmployerInvoiceListCommand(AbstractListCommand):
     for_company_pk: TPrimaryKey
 
 

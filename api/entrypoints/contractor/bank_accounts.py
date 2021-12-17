@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 
@@ -11,7 +11,8 @@ from domain.commands.contractor.bank_accounts import (
     ContractorRecipientBankAccountUpdateCommand,
 )
 from domain.responses.bank_accounts import RecipientBankAccountResponse
-from domain.types import TPrimaryKey
+from domain.types import TPrimaryKey, TSortByDirection
+from settings import DEFAULT_LIMIT
 
 from ..dependencies import get_current_contractor_pk
 
@@ -23,10 +24,21 @@ router = APIRouter(
 
 @router.get("/", response_model=List[RecipientBankAccountResponse])
 async def get_recipient_bank_accounts(
+    offset: Optional[int] = 0,
+    limit: Optional[int] = DEFAULT_LIMIT,
+    search: Optional[str] = None,
+    sort_by_field: Optional[str] = None,
+    sort_by_direction: Optional[TSortByDirection] = TSortByDirection.DESC,
     current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
 ):
     """Get recipient bank accounts list for authenticated contractor."""
-    result = await bus.handler(ContractorRecipientBankAccountListCommand(), current_user_pk=current_contractor_pk)
+    command = ContractorRecipientBankAccountListCommand()
+    command.offset = offset
+    command.limit = limit
+    command.search = search
+    command.sort_by_field = sort_by_field
+    command.sort_by_direction = sort_by_direction
+    result = await bus.handler(command, current_user_pk=current_contractor_pk)
     return [RecipientBankAccountResponse(**o.dict()) for o in result]
 
 

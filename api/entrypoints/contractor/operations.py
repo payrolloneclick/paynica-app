@@ -1,11 +1,12 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 
 from bootstrap import bus
 from domain.commands.contractor.operations import ContractorOperationListCommand, ContractorOperationRetrieveCommand
 from domain.responses.operations import OperationResponse
-from domain.types import TPrimaryKey
+from domain.types import TPrimaryKey, TSortByDirection
+from settings import DEFAULT_LIMIT
 
 from ..dependencies import get_current_contractor_pk
 
@@ -17,10 +18,21 @@ router = APIRouter(
 
 @router.get("/", response_model=List[OperationResponse])
 async def get_operations(
+    offset: Optional[int] = 0,
+    limit: Optional[int] = DEFAULT_LIMIT,
+    search: Optional[str] = None,
+    sort_by_field: Optional[str] = None,
+    sort_by_direction: Optional[TSortByDirection] = TSortByDirection.DESC,
     current_contractor_pk: TPrimaryKey = Depends(get_current_contractor_pk),
 ):
     """Get operations for authenticated contractor."""
-    result = await bus.handler(ContractorOperationListCommand(), current_user_pk=current_contractor_pk)
+    command = ContractorOperationListCommand()
+    command.offset = offset
+    command.limit = limit
+    command.search = search
+    command.sort_by_field = sort_by_field
+    command.sort_by_direction = sort_by_direction
+    result = await bus.handler(command, current_user_pk=current_contractor_pk)
     return [OperationResponse(**o.dict()) for o in result]
 
 
