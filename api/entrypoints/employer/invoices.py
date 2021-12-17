@@ -23,6 +23,7 @@ router = APIRouter(
 
 @router.get("/", response_model=List[InvoiceResponse])
 async def get_invoices(
+    company_pk: Optional[TPrimaryKey] = None,
     offset: Optional[int] = 0,
     limit: Optional[int] = DEFAULT_LIMIT,
     search: Optional[str] = None,
@@ -32,6 +33,7 @@ async def get_invoices(
 ):
     """Get invoices list for authenticated employer."""
     command = EmployerInvoiceListCommand()
+    command.for_company_pk = company_pk
     command.offset = offset
     command.limit = limit
     command.search = search

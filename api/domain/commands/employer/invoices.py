@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from domain.types import TPrimaryKey
 
@@ -6,7 +6,7 @@ from ..generic import AbstractCommand, AbstractListCommand
 
 
 class EmployerInvoiceListCommand(AbstractListCommand):
-    for_company_pk: TPrimaryKey
+    for_company_pk: Optional[TPrimaryKey]
 
 
 class EmployerInvoiceRetrieveCommand(AbstractCommand):
