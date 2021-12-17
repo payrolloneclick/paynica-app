@@ -11,12 +11,14 @@ from ..session.generic import AbstractSession
 class AbstractFakeRepository(AbstractRepository):
     def __init__(self, session: AbstractSession) -> None:
         self.session = session
+        if self.__class__.__name__ not in self.session.objects:
+            self.session.objects[self.__class__.__name__] = {}
 
     async def add(self, obj: BaseModel) -> None:
         if obj.pk in self.session.objects:
             raise ObjectAlreadyExists
         print(obj)
-        self.session.objects[obj.pk] = obj
+        self.session.objects[self.__class__.__name__][obj.pk] = obj
 
     async def get(self, **kwargs) -> BaseModel:
         objs = await self.filter(**kwargs)
@@ -49,17 +51,17 @@ class AbstractFakeRepository(AbstractRepository):
         return count > 0
 
     async def all(self) -> List[BaseModel]:
-        return [o for o in self.session.objects.values()]
+        return [o for o in self.session.objects[self.__class__.__name__].values()]
 
     async def update(self, obj: BaseModel) -> None:
-        if obj.pk not in self.session.objects:
+        if obj.pk not in self.session.objects[self.__class__.__name__]:
             raise ObjectDoesNotExist
         print(obj)
-        self.session.objects[obj.pk] = obj
+        self.session.objects[self.__class__.__name__][obj.pk] = obj
 
     async def delete(self, pk: UUID4) -> UUID4:
-        if pk not in self.session.objects:
+        if pk not in self.session.objects[self.__class__.__name__]:
             raise ObjectDoesNotExist
-        if pk in self.session.objects:
-            del self.session.objects[pk]
+        if pk in self.session.objects[self.__class__.__name__]:
+            del self.session.objects[self.__class__.__name__][pk]
         return pk

@@ -1,12 +1,16 @@
+import uuid
+
 import pytest
 
 from bootstrap import bus
 from domain.types import TRole
 
+from .scenarios.employer.companies import create_company
 from .scenarios.users import (
     change_password,
     delete_profile,
     get_profile,
+    invite_user,
     reset_password,
     signin_generate_access_token,
     signin_refresh_access_token,
@@ -723,4 +727,109 @@ async def test_delete_profile_4xx(async_client):
     assert response.status_code == 401, response.text
 
 
-# TODO invitation tests
+@pytest.mark.asyncio
+async def test_invite_registered_user(async_client):
+    await signup_user(async_client, "employer@test.com", TRole.EMPLOYER, "password")
+    await signup_verify_email(async_client, "employer@test.com")
+    company_data = await create_company(async_client, "employer@test.com", "password", "Employer Company")
+    await signup_user(async_client, "contractor@test.com", TRole.CONTRACTOR, "password")
+    await signup_verify_email(async_client, "contractor@test.com")
+    await invite_user(async_client, company_data["pk"], "employer@test.com", "password", "contractor@test.com")
+
+
+@pytest.mark.asyncio
+async def test_invite_non_registered_user(async_client):
+    await signup_user(async_client, "employer@test.com", TRole.EMPLOYER, "password")
+    await signup_verify_email(async_client, "employer@test.com")
+    company_data = await create_company(async_client, "employer@test.com", "password", "Employer Company")
+    await invite_user(async_client, company_data["pk"], "employer@test.com", "password", "contractor@test.com")
+
+
+@pytest.mark.asyncio
+async def test_invite_user_4xx(async_client):
+    send_invitation_code_url = "/users/send-invitation-code"
+    invite_user_url = "/users/invite-user"
+    await signup_user(async_client, "employer@test.com", TRole.EMPLOYER, "password")
+    await signup_verify_email(async_client, "employer@test.com")
+    company_data = await create_company(async_client, "employer@test.com", "password", "Employer Company")
+    company_pk = company_data["pk"]
+    response = await async_client.post(
+        send_invitation_code_url,
+        json={},
+    )
+    assert response.status_code == 403, response.text
+
+    response = await signin_generate_access_token(async_client, "employer@test.com", "password")
+    access_token = response["access_token"]
+
+    response = await async_client.post(
+        send_invitation_code_url,
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={},
+    )
+    assert response.status_code == 422, response.text
+
+    data = {
+        "email": "contractor@test.com",
+        "company_pk": company_pk,
+    }
+    response = await async_client.post(
+        send_invitation_code_url,
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={
+            "email": "contractor@test.com",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        send_invitation_code_url,
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={
+            "company_pk": company_pk,
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        send_invitation_code_url,
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={**data, "company_pk": "invalid_pk"},
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        send_invitation_code_url,
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={**data, "email": "invalid_email"},
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        send_invitation_code_url,
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={**data, "company_pk": str(uuid.uuid4())},
+    )
+    assert response.status_code == 400, response.text
+
+    response = await async_client.post(
+        invite_user_url,
+        json={},
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        invite_user_url,
+        json={
+            "invitation_code": "invalid_code",
+        },
+    )
+    assert response.status_code == 422, response.text
+
+    response = await async_client.post(
+        invite_user_url,
+        json={
+            "invitation_code": "a" * 16,
+        },
+    )
+    assert response.status_code == 404, response.text

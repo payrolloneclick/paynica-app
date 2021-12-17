@@ -136,12 +136,14 @@ async def signup_user_handler(
         user = await uow.users.first(email=message.email, role=message.role, is_active=False)
         if user:
             await user.set_password(message.password)
-            uow.users.update(user)
+            await uow.users.update(user)
         else:
             user = User(
                 pk=uuid4(),
                 email=message.email,
                 role=message.role,
+                is_active=False,
+                is_onboarded=False,
                 created_date=datetime.now(),
             )
             await user.set_password(message.password)
@@ -279,17 +281,35 @@ async def generate_invitation_code_handler(
         created_date=datetime.now(),
     )
     async with uow:
+        if not await uow.companies.exists(pk=message.company_pk):
+            raise ValidationException(detail="Company with this company_pk doesn't exist")
+        sender_user = await uow.users.first(pk=current_user_pk)
+        if sender_user.role == TRole.EMPLOYER and not await uow.companies_m2m_employers.exists(
+            company_pk=message.company_pk, employer_pk=sender_user.pk
+        ):
+            raise ValidationException(detail="Company with this company_pk doesn't have authenticated current user")
+        if sender_user.role == TRole.CONTRACTOR and not await uow.companies_m2m_contractors.exists(
+            company_pk=message.company_pk, contractor_pk=sender_user.pk
+        ):
+            raise ValidationException(detail="Company with this company_pk doesn't have authenticated current user")
+
         user = await uow.users.first(email=invite_user_to_company.email)
-        if (
-            user
-            and user.role == TRole.EMPLOYER
-            and await uow.companies_m2m_employers(company_pk=message.company_pk, employer_pk=user.pk).exists()
+        if not user:
+            user = User(
+                pk=uuid4(),
+                email=message.email,
+                role=TRole.CONTRACTOR,
+                is_active=False,
+                is_onboarded=False,
+                created_date=datetime.now(),
+            )
+            await uow.users.add(user)
+        if user.role == TRole.EMPLOYER and await uow.companies_m2m_employers.exists(
+            company_pk=message.company_pk, employer_pk=user.pk
         ):
             raise ValidationException(detail="User is already in this company")
-        if (
-            user
-            and user.role == TRole.CONTRACTOR
-            and await uow.companies_m2m_contractors(company_pk=message.company_pk, contractor_pk=user.pk).exists()
+        if user.role == TRole.CONTRACTOR and await uow.companies_m2m_contractors.exists(
+            company_pk=message.company_pk, contractor_pk=user.pk
         ):
             raise ValidationException(detail="User is already in this company")
         if await uow.invite_users_to_companies.exists(email=message.email, company_pk=message.company_pk):
@@ -334,6 +354,7 @@ async def invite_user_handler(
                 created_date=datetime.now(),
             )
             await uow.companies_m2m_contractors.add(company_m2m_contractor)
+        await uow.invite_users_to_companies.delete(invite_user_to_company.pk)
         await uow.commit()
     return user
 

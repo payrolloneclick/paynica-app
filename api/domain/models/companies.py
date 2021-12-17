@@ -35,7 +35,7 @@ class InviteUserToCompany(AbstractModel):
     company_pk: TPrimaryKey
     company: Optional[Company]
     email: TEmail
-    invitation_code: TInvitationCode
+    invitation_code: Optional[TInvitationCode]
 
     async def randomly_set_invitation_code(self, length: int = 16) -> None:
         self.invitation_code = secrets.token_hex(length)

@@ -258,8 +258,49 @@ async def change_password(async_client: AsyncClient, email: str, password: str, 
     return user_data
 
 
-async def delete_profile(async_client: AsyncClient, email: str, password: str) -> dict:
+async def delete_profile(async_client: AsyncClient, email: str, password: str) -> None:
     response = await signin_generate_access_token(async_client, email, password)
     access_token = response["access_token"]
     response = await async_client.delete("/users/profile", headers={"Authorization": "Bearer {}".format(access_token)})
     assert response.status_code == 200, response.text
+
+
+async def invite_user(
+    async_client: AsyncClient,
+    company_pk: str,
+    email: str,
+    password: str,
+    invite_email: str,
+) -> None:
+    company_pk = uuid.UUID(company_pk)
+    response = await signin_generate_access_token(async_client, email, password)
+    access_token = response["access_token"]
+    response = await async_client.post(
+        "/users/send-invitation-code",
+        headers={"Authorization": "Bearer {}".format(access_token)},
+        json={
+            "email": invite_email,
+            "company_pk": str(company_pk),
+        },
+    )
+    assert response.status_code == 200, response.text
+
+    async with bus.uow:
+        db_invite_users_to_companies = await bus.uow.invite_users_to_companies.all()
+        db_invite_user_to_company = db_invite_users_to_companies[-1]
+    assert db_invite_user_to_company.company_pk == company_pk
+    assert db_invite_user_to_company.email == invite_email
+    assert db_invite_user_to_company.invitation_code
+    invitation_code = db_invite_user_to_company.invitation_code
+    response = await async_client.post(
+        "/users/invite-user",
+        json={
+            "invitation_code": invitation_code,
+        },
+    )
+    assert response.status_code == 200, response.text
+    async with bus.uow:
+        assert not await bus.uow.invite_users_to_companies.first(pk=db_invite_user_to_company.pk)
+        invited_user = await bus.uow.users.get(email=invite_email)
+        assert not await bus.uow.companies_m2m_employers.exists(employer_pk=invited_user.pk, company_pk=company_pk)
+        assert await bus.uow.companies_m2m_contractors.exists(contractor_pk=invited_user.pk, company_pk=company_pk)

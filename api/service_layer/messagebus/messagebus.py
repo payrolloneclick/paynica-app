@@ -16,6 +16,7 @@ from domain.commands.employer import invoices as employer_invoices_commands
 from domain.commands.employer import operations as employer_operations_commands
 from domain.responses.generic import AbstractReponse
 from service_layer.handlers import users as users_handlers
+from service_layer.handlers.employer import companies as employer_companies_handlers
 from service_layer.handlers.generic import AbstractMessage
 from service_layer.unit_of_work.generic import AbstractUnitOfWork
 
@@ -50,7 +51,7 @@ COMMANDS = {
     users_commands.ChangePasswordCommand: users_handlers.change_password_handler,
     # companies
     employer_companies_commands.EmployerCompanyListCommand: None,
-    employer_companies_commands.EmployerCompanyCreateCommand: None,
+    employer_companies_commands.EmployerCompanyCreateCommand: employer_companies_handlers.company_create_handler,
     employer_companies_commands.EmployerCompanyUpdateCommand: None,
     employer_companies_commands.EmployerCompanyRetrieveCommand: None,
     employer_companies_commands.EmployerCompanyDeleteCommand: None,

@@ -22,7 +22,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=List[CompanyResponse])
+@router.get("", response_model=List[CompanyResponse])
 async def get_companies(
     current_employer_pk: TPrimaryKey = Depends(get_current_employer_pk),
 ):
@@ -42,7 +42,7 @@ async def get_company(
     return CompanyResponse(**result.dict())
 
 
-@router.post("/", response_model=CompanyResponse)
+@router.post("", response_model=CompanyResponse)
 async def create_company(
     command: EmployerCompanyCreateCommand,
     current_employer_pk: TPrimaryKey = Depends(get_current_employer_pk),

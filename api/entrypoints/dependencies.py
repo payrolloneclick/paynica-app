@@ -34,16 +34,16 @@ async def get_current_user_pk(token: str = Depends(token_auth_scheme)):
 
 
 async def get_current_employer_pk(token: str = Depends(token_auth_scheme)):
-    user_pk = get_current_user_pk(token)
+    user_pk = await get_current_user_pk(token)
     async with bus.uow:
-        if not await bus.uow.users.exists(pk=UUID(user_pk), role=TRole.EMPLOYER):
+        if not await bus.uow.users.exists(pk=user_pk, role=TRole.EMPLOYER):
             raise NotAuthorizedException(detail="User is not EMPLOYER")
     return user_pk
 
 
 async def get_current_contractor_pk(token: str = Depends(token_auth_scheme)):
-    user_pk = get_current_user_pk(token)
+    user_pk = await get_current_user_pk(token)
     async with bus.uow:
-        if not await bus.uow.users.exists(pk=UUID(user_pk), role=TRole.CONTRACTOR):
+        if not await bus.uow.users.exists(pk=user_pk, role=TRole.CONTRACTOR):
             raise NotAuthorizedException(detail="User is not CONTRACTOR")
     return user_pk
