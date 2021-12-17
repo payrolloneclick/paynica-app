@@ -8,9 +8,11 @@ from ..generic import AbstractCommand
 class EmployerSenderBankAccountListCommand(AbstractCommand):
     offset: Optional[int] = 0
     limit: Optional[int] = 25
+    sender_owner_company_pk: TPrimaryKey
 
 
 class EmployerSenderBankAccountCreateCommand(AbstractCommand):
+    sender_owner_company_pk: TPrimaryKey
     sender_currency: TCurrency
     sender_country_alpha3: TCountry
 

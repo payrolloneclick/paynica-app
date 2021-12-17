@@ -5,13 +5,10 @@ from ..types import TPrimaryKey
 from .bank_accounts import RecipientBankAccount, SenderBankAccount
 from .companies import Company
 from .generic import AbstractModel
-from .invoices import Invoice
 from .users import User
 
 
 class Operation(SenderBankAccount, RecipientBankAccount, AbstractModel):
-    invoice_pk: TPrimaryKey
-    invoice: Optional[Invoice]
     operation_owner_company_pk: TPrimaryKey
     operation_owner_company: Optional[Company]
     operation_owner_user_pk: TPrimaryKey

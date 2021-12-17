@@ -4,20 +4,30 @@ from typing import Optional
 from pydantic.types import constr
 
 from ..types import TPrimaryKey
-from .bank_accounts import RecipientBankAccount
+from .bank_accounts import RecipientBankAccount, SenderBankAccount
 from .companies import Company
 from .generic import AbstractModel
+from .operations import Operation
 from .users import User
 
 
 class Invoice(AbstractModel):
-    invoice_owner_company_pk: TPrimaryKey
-    invoice_owner_company: Optional[Company]
-    invoice_owner_user_pk: TPrimaryKey
-    invoice_owner_user: Optional[User]
+    created_by_pk: TPrimaryKey
+    created_by: Optional[User]
+
+    # user bank account
     recipient_account_pk: TPrimaryKey
     recipient_account: Optional[RecipientBankAccount]
-    recipient_amount: Decimal
+
+    for_company_pk: TPrimaryKey
+    for_company: Optional[Company]
+
+    # company bank account
+    sender_account_pk: Optional[TPrimaryKey]
+    sender_account: Optional[SenderBankAccount]
+
+    operation_pk: Optional[TPrimaryKey]
+    operation: Optional[Operation]
 
 
 class InvoiceItem(AbstractModel):
