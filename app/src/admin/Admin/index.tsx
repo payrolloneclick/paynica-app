@@ -6,7 +6,6 @@ import {
   AppstoreOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
-import enUS from 'antd/es/locale/en_US';
 
 import styles from './index.module.scss';
 
@@ -16,7 +15,7 @@ const { SubMenu } = Menu;
 const Admin = () => {
   const { t } = useTranslation();
   return (
-    <ConfigProvider locale={enUS}>
+    <ConfigProvider>
       <Layout style={{ minHeight: '100vh' }}>
         <Sider>
           <div className={styles.logo} />
