@@ -1,11 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { ConfigProvider } from 'antd';
-import enUS from 'antd/es/locale/en_US';
+
+import { BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from 'react-query';
 
-import App from 'containers/App';
+import Bootstrap from './Bootstrap';
 
 import './i18n';
 import reportWebVitals from './reportWebVitals';
@@ -14,26 +14,15 @@ import 'styles/index.scss';
 
 const queryClient = new QueryClient();
 
-ConfigProvider.config({
-  theme: {
-    primaryColor: '#84aea3',
-    infoColor: '#7a92ce',
-    successColor: '#ff7851',
-    processingColor: '#8d7091',
-    errorColor: '#ff4d4f',
-    warningColor: '#cea709',
-  },
-});
-
 ReactDOM.render(
   <React.StrictMode>
-    <ConfigProvider locale={enUS}>
+    <BrowserRouter>
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
-          <App />
+          <Bootstrap />
         </QueryClientProvider>
       </HelmetProvider>
-    </ConfigProvider>
+    </BrowserRouter>
   </React.StrictMode>,
   document.getElementById('root'),
 );

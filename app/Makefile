@@ -10,7 +10,7 @@ start:
 .PHONY: lint
 lint:
 	yarn run lint
-	yarn run pretty-quick --staged  --check
+	yarn run prettier . -c
 
 .PHONY: test
 test:
@@ -27,4 +27,4 @@ build:
 .PHONY: fix
 fix:
 	yarn run lint --fix
-	yarn run pretty-quick
+	yarn run prettier . -w
