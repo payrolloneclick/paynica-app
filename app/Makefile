@@ -5,7 +5,7 @@ clean:
 
 .PHONY: start
 start:
-	PORT=3030 yarn run start
+	yarn run start
 
 .PHONY: lint
 lint:

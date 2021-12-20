@@ -4,14 +4,10 @@ Dev backend stack (api folder):
 
 - fastapi
 
-Dev admin panel stack (admin folder):
-
-- react
-- react-admin
-
 Dev web stack (app folder):
 
 - react
+- typescript
 
 Dev mobile stack:
 
@@ -71,30 +67,6 @@ $ make test
 
 ```sh
 $ cd app
-$ make lint
-$ make fix
-```
-
-## Admin Dashboard Client
-
-### Run locally
-
-```sh
-$ cd admin
-$ make start
-```
-
-### Run tests locally
-
-```sh
-$ cd admin
-$ make test
-```
-
-### Run/Fix linters locally
-
-```sh
-$ cd admin
 $ make lint
 $ make fix
 ```
