@@ -50,8 +50,21 @@ async def test_companies_list(async_client):
 
 @pytest.mark.asyncio
 async def test_companies_list_4xx(async_client):
+    await signup_user(async_client, "employer@test.com", TRole.EMPLOYER, "password")
+    await signup_verify_email(async_client, "employer@test.com")
+    await signup_user(async_client, "contractor@test.com", TRole.CONTRACTOR, "password")
+    await signup_verify_email(async_client, "contractor@test.com")
+
     url = "/contractor/companies"
     response = await async_client.get(url)
+    assert response.status_code == 403, response.text
+
+    response = await signin_generate_access_token(async_client, "employer@test.com", "password")
+    access_token = response["access_token"]
+    response = await async_client.get(
+        url,
+        headers={"Authorization": "Bearer {}".format(access_token)},
+    )
     assert response.status_code == 403, response.text
 
 
@@ -100,6 +113,14 @@ async def test_companies_retrieve_4xx(async_client):
     await invite_user(async_client, pk, "employer@test.com", "password", "contractor@test.com")
     response = await async_client.get(
         f"/contractor/companies/{uuid4()}",
+        headers={"Authorization": "Bearer {}".format(access_token)},
+    )
+    assert response.status_code == 403, response.text
+
+    response = await signin_generate_access_token(async_client, "employer@test.com", "password")
+    access_token = response["access_token"]
+    response = await async_client.get(
+        url,
         headers={"Authorization": "Bearer {}".format(access_token)},
     )
     assert response.status_code == 403, response.text
