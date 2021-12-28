@@ -23,3 +23,21 @@ JWT_REFRESH_TOKEN_EXPIRED_AT = env.int("JWT_REFRESH_TOKEN_EXPIRED_AT")  # in sec
 
 # PAGINATION
 DEFAULT_LIMIT = env.int("DEFAULT_LIMIT", 25)
+
+# ORM
+TORTOISE_ORM = {
+    "connections": {"default": DATABASE_URI},
+    "apps": {
+        "models": {
+            "models": [
+                "adapters.orm.models.users",
+                "adapters.orm.models.companies",
+                "adapters.orm.models.bank_accounts",
+                "adapters.orm.models.invoices",
+                "adapters.orm.models.operations",
+                "aerich.models",
+            ],
+            "default_connection": "default",
+        },
+    },
+}
