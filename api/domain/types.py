@@ -23,7 +23,7 @@ class TRole(str, Enum):
     CONTRACTOR = "CONTRACTOR"
 
 
-class TBankAccountType:
+class TBankAccountType(str, Enum):
     BUSINESS = "BUSINESS"
     PERSONAL = "PERSONAL"
 

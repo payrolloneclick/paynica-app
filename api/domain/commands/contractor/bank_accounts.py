@@ -1,7 +1,6 @@
 from typing import Optional
 
-from api.domain.types import TBankAccountType
-from domain.types import TCountry, TCurrency, TPrimaryKey
+from domain.types import TBankAccountType, TCountry, TCurrency, TPrimaryKey
 
 from ..generic import AbstractCommand, AbstractListCommand
 
