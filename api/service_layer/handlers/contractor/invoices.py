@@ -117,6 +117,18 @@ async def recipient_invoice_update_handler(
                 uow.invoice_items.update(invoice_item)
             else:
                 uow.invoice_items.delete(invoice_item.pk)
+        for message_invoice_item in message.items:
+            invoice_item = next((i for i in invoice_items if i.pk == message_invoice_item.pk), None)
+            if not invoice_item:
+                invoice_item = InvoiceItem(
+                    pk=uuid4(),
+                    created_date=datetime.utcnow(),
+                    invoice_pk=invoice.pk,
+                    amount=message_invoice_item.amount,
+                    quantity=message_invoice_item.quantity,
+                    description=message_invoice_item.description,
+                )
+                uow.invoice_items.add(invoice_item)
         await uow.commit()
     return invoice
 
