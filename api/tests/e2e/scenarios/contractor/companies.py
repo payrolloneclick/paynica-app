@@ -2,6 +2,8 @@ from typing import Optional
 
 from httpx import AsyncClient
 
+from domain.types import TPrimaryKey
+
 from ..users import signin_generate_access_token
 
 
@@ -27,4 +29,26 @@ async def list_companies(
     )
     assert response.status_code == 200, response.text
     companies = response.json()
+    if companies:
+        company = companies[0]
+        assert "pk" in company
     return companies
+
+
+async def retrieve_company(
+    async_client: AsyncClient,
+    email: str,
+    password: str,
+    pk: TPrimaryKey,
+) -> dict:
+    response = await signin_generate_access_token(async_client, email, password)
+    access_token = response["access_token"]
+    url = f"/contractor/companies/{pk}"
+    response = await async_client.get(
+        url,
+        headers={"Authorization": "Bearer {}".format(access_token)},
+    )
+    assert response.status_code == 200, response.text
+    company = response.json()
+    assert "pk" in company
+    return company

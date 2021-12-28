@@ -40,7 +40,7 @@ async def company_retrieve_handler(
     async with uow:
         if not await uow.companies_m2m_contractors.exists(contractor_pk=current_user_pk, company_pk=message.company_pk):
             raise PermissionDeniedException(detail=f"Contractor has no access to company with pk {message.company_pk}")
-        company = await uow.companies.get(pk=message.pk)
+        company = await uow.companies.get(pk=message.company_pk)
     return company
 
 
