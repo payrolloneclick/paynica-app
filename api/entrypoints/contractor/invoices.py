@@ -22,7 +22,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=List[InvoiceResponse])
+@router.get("", response_model=List[InvoiceResponse])
 async def get_invoices(
     offset: Optional[int] = 0,
     limit: Optional[int] = DEFAULT_LIMIT,
@@ -61,7 +61,7 @@ async def get_invoice(
     return InvoiceResponse(**result.dict())
 
 
-@router.post("/", response_model=InvoiceResponse)
+@router.post("", response_model=InvoiceResponse)
 async def create_invoice(
     command: ContractorInvoiceCreateCommand,
     current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),

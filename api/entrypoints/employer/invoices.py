@@ -21,7 +21,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=List[InvoiceResponse])
+@router.get("", response_model=List[InvoiceResponse])
 async def get_invoices(
     offset: Optional[int] = 0,
     limit: Optional[int] = DEFAULT_LIMIT,

@@ -16,7 +16,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=List[OperationResponse])
+@router.get("", response_model=List[OperationResponse])
 async def get_operations(
     offset: Optional[int] = 0,
     limit: Optional[int] = DEFAULT_LIMIT,

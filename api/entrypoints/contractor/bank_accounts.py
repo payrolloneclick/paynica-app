@@ -22,7 +22,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=List[RecipientBankAccountResponse])
+@router.get("", response_model=List[RecipientBankAccountResponse])
 async def get_recipient_bank_accounts(
     offset: Optional[int] = 0,
     limit: Optional[int] = DEFAULT_LIMIT,
@@ -61,7 +61,7 @@ async def get_recipient_bank_account(
     return RecipientBankAccountResponse(**result.dict())
 
 
-@router.post("/", response_model=RecipientBankAccountResponse)
+@router.post("", response_model=RecipientBankAccountResponse)
 async def create_recipient_bank_account(
     command: ContractorRecipientBankAccountCreateCommand,
     current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
