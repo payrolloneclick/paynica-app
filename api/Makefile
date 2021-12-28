@@ -6,6 +6,21 @@ clean:
 	rm -rf .coverage
 
 
+.PHONY: db_migrate
+db_migrate:
+	aerich migrate
+
+
+.PHONY: db_upgrade
+db_upgrade:
+	aerich upgrade
+
+
+.PHONY: db_downgrade
+db_downgrade:
+	aerich downgrade
+
+
 .PHONY: start
 start:
 	uvicorn main:app --reload --port=8080

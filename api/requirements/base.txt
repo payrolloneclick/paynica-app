@@ -4,3 +4,6 @@ aiohttp==3.8.1
 pyjwt[crypto]==2.3.0
 environs==9.3.5
 phonenumbers==8.12.38
+tortoise-orm==0.17.8
+tortoise-orm[asyncpg]==0.17.8
+aerich==0.6.1

@@ -7,10 +7,10 @@ from .users import User
 
 
 class SenderBankAccount(AbstractModel):
-    sender_owner_company_pk: Optional[TPrimaryKey]
-    sender_owner_company: Optional[Company]
     sender_owner_user_pk: Optional[TPrimaryKey]
     sender_owner_user: Optional[User]
+    sender_owner_company_pk: Optional[TPrimaryKey]
+    sender_owner_company: Optional[Company]
 
     sender_bank_account_type: TBankAccountType
     sender_currency: TCurrency
@@ -18,10 +18,10 @@ class SenderBankAccount(AbstractModel):
 
 
 class RecipientBankAccount(AbstractModel):
-    recipient_owner_company_pk: Optional[TPrimaryKey]
-    recipient_owner_company: Optional[Company]
     recipient_owner_user_pk: Optional[TPrimaryKey]
     recipient_owner_user: Optional[User]
+    recipient_owner_company_pk: Optional[TPrimaryKey]
+    recipient_owner_company: Optional[Company]
 
     recipient_bank_account_type: TBankAccountType
     recipient_currency: TCurrency
