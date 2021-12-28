@@ -18,7 +18,7 @@ from ..permissions import has_role
 
 
 @has_role(role=TRole.CONTRACTOR)
-async def recipient_invoice_list_handler(
+async def invoice_list_handler(
     message: ContractorInvoiceListCommand,
     uow: Optional[DBUnitOfWork] = None,
     current_user_pk: Optional[TPrimaryKey] = None,
@@ -37,7 +37,7 @@ async def recipient_invoice_list_handler(
 
 
 @has_role(role=TRole.CONTRACTOR)
-async def recipient_invoice_retrieve_handler(
+async def invoice_retrieve_handler(
     message: ContractorInvoiceRetrieveCommand,
     uow: Optional[DBUnitOfWork] = None,
     current_user_pk: Optional[TPrimaryKey] = None,
@@ -54,7 +54,7 @@ async def recipient_invoice_retrieve_handler(
 
 
 @has_role(role=TRole.CONTRACTOR)
-async def recipient_invoice_create_handler(
+async def invoice_create_handler(
     message: ContractorInvoiceCreateCommand,
     uow: Optional[DBUnitOfWork] = None,
     current_user_pk: Optional[TPrimaryKey] = None,
@@ -87,7 +87,7 @@ async def recipient_invoice_create_handler(
 
 
 @has_role(role=TRole.CONTRACTOR)
-async def recipient_invoice_update_handler(
+async def invoice_update_handler(
     message: ContractorInvoiceUpdateCommand,
     uow: Optional[DBUnitOfWork] = None,
     current_user_pk: Optional[TPrimaryKey] = None,
@@ -134,7 +134,7 @@ async def recipient_invoice_update_handler(
 
 
 @has_role(role=TRole.CONTRACTOR)
-async def recipient_invoice_delete_handler(
+async def invoice_delete_handler(
     message: ContractorInvoiceDeleteCommand,
     uow: Optional[DBUnitOfWork] = None,
     current_user_pk: Optional[TPrimaryKey] = None,

@@ -15,6 +15,7 @@ class InvoiceItem(AbstractReponse):
 
 
 class InvoiceResponse(AbstractReponse):
+    pk: TPrimaryKey
     invoice_owner_company_pk: TPrimaryKey
     invoice_owner_user_pk: TPrimaryKey
     recipient_account_pk: TPrimaryKey

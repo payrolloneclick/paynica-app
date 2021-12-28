@@ -65,6 +65,7 @@ async def recipient_bank_account_create_handler(
             created_date=datetime.utcnow(),
             recipient_owner_user_pk=current_user_pk,
             recipient_owner_company_pk=current_company_pk,
+            recipient_bank_account_type=message.recipient_bank_account_type,
             recipient_currency=message.recipient_currency,
             recipient_country_alpha3=message.recipient_country_alpha3,
         )
