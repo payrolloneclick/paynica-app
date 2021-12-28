@@ -21,7 +21,6 @@ async def test_companies_list(async_client):
         async_client,
         "contractor@test.com",
         "password",
-        2,
         limit=10,
         offset=0,
     )
@@ -31,7 +30,6 @@ async def test_companies_list(async_client):
         async_client,
         "contractor@test.com",
         "password",
-        2,
         limit=1,
         offset=0,
     )
@@ -41,7 +39,6 @@ async def test_companies_list(async_client):
         async_client,
         "contractor@test.com",
         "password",
-        2,
         limit=1,
         offset=2,
     )
