@@ -9,3 +9,7 @@ class EntrypointsException(Exception):
 
 class NotAuthorizedException(EntrypointsException):
     pass
+
+
+class HeaderValidationException(EntrypointsException):
+    pass

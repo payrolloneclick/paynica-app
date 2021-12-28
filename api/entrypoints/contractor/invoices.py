@@ -14,7 +14,7 @@ from domain.responses.invoices import InvoiceResponse
 from domain.types import TPrimaryKey
 from settings import DEFAULT_LIMIT
 
-from ..dependencies import get_current_user_pk
+from ..dependencies import get_current_company_pk, get_current_user_pk
 
 router = APIRouter(
     prefix="/contractor/invoices",
@@ -30,6 +30,7 @@ async def get_invoices(
     search: Optional[str] = None,
     sort_by: Optional[str] = None,
     current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
+    current_company_pk: TPrimaryKey = Depends(get_current_company_pk),
 ):
     """Get invoices list for authenticated contractor."""
     command = ContractorInvoiceListCommand()
@@ -38,7 +39,11 @@ async def get_invoices(
     command.limit = limit
     command.search = search
     command.sort_by = sort_by
-    result = await bus.handler(command, current_user_pk=current_contractor_pk)
+    result = await bus.handler(
+        command,
+        current_user_pk=current_contractor_pk,
+        current_company_pk=current_company_pk,
+    )
     return [InvoiceResponse(**o.dict()) for o in result]
 
 
@@ -46,10 +51,15 @@ async def get_invoices(
 async def get_invoice(
     invoice_pk: TPrimaryKey,
     current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
+    current_company_pk: TPrimaryKey = Depends(get_current_company_pk),
 ):
     """Get an invoice for authenticated contractor."""
     command = ContractorInvoiceRetrieveCommand(invoice_pk=invoice_pk)
-    result = await bus.handler(command, current_user_pk=current_contractor_pk)
+    result = await bus.handler(
+        command,
+        current_user_pk=current_contractor_pk,
+        current_company_pk=current_company_pk,
+    )
     return InvoiceResponse(**result.dict())
 
 
@@ -57,9 +67,14 @@ async def get_invoice(
 async def create_invoice(
     command: ContractorInvoiceCreateCommand,
     current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
+    current_company_pk: TPrimaryKey = Depends(get_current_company_pk),
 ):
     """Create an invoice for authenticated contractor."""
-    result = await bus.handler(command, current_user_pk=current_contractor_pk)
+    result = await bus.handler(
+        command,
+        current_user_pk=current_contractor_pk,
+        current_company_pk=current_company_pk,
+    )
     return InvoiceResponse(**result.dict())
 
 
@@ -68,10 +83,15 @@ async def update_invoice(
     invoice_pk: TPrimaryKey,
     command: ContractorInvoiceUpdateCommand,
     current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
+    current_company_pk: TPrimaryKey = Depends(get_current_company_pk),
 ):
     """Update an invoice for authenticated contractor."""
     command.invoice_pk = invoice_pk
-    result = await bus.handler(command, current_user_pk=current_contractor_pk)
+    result = await bus.handler(
+        command,
+        current_user_pk=current_contractor_pk,
+        current_company_pk=current_company_pk,
+    )
     return InvoiceResponse(**result.dict())
 
 
@@ -79,7 +99,12 @@ async def update_invoice(
 async def delete_invoice(
     invoice_pk: TPrimaryKey,
     current_contractor_pk: TPrimaryKey = Depends(get_current_user_pk),
+    current_company_pk: TPrimaryKey = Depends(get_current_company_pk),
 ):
     """Delete/inactivate an invoice for authenticated contractor."""
     command = ContractorInvoiceDeleteCommand(invoice_pk=invoice_pk)
-    await bus.handler(command, current_user_pk=current_contractor_pk)
+    await bus.handler(
+        command,
+        current_user_pk=current_contractor_pk,
+        current_company_pk=current_company_pk,
+    )

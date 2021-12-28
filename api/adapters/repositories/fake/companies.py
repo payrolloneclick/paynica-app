@@ -1,11 +1,22 @@
 from typing import List, Optional
 
 from domain.models.companies import Company, CompanyM2MContractor, CompanyM2MEmployer, InviteUserToCompany
+from settings import DEFAULT_LIMIT
 
 from .generic import AbstractFakeRepository
 
 
 class CompanyFakeRepository(AbstractFakeRepository):
+    async def list(
+        self,
+        search: Optional[str] = None,
+        sort_by: Optional[str] = None,
+        offset: Optional[int] = 0,
+        limit: Optional[int] = DEFAULT_LIMIT,
+        **kwargs,
+    ) -> List[Company]:
+        return await super().list(search=search, sort_by=sort_by, offset=offset, limit=limit, **kwargs)
+
     async def all(self) -> List[Company]:
         return await super().all()
 

@@ -5,7 +5,6 @@ from pydantic.types import UUID4
 
 from adapters.email.generic import AbstractEmailAdapter
 from adapters.sms.generic import AbstractSmsAdapter
-from admin.resources.generic import AbstractAdminResources
 from domain.commands import users as users_commands
 from domain.commands.contractor import bank_accounts as contractor_bank_accounts_commands
 from domain.commands.contractor import companies as contractor_companies_commands
@@ -18,6 +17,7 @@ from domain.commands.employer import operations as employer_operations_commands
 from domain.responses.generic import AbstractReponse
 from service_layer.exceptions import ServiceException
 from service_layer.handlers import users as users_handlers
+from service_layer.handlers.contractor import companies as contractor_companies_handlers
 from service_layer.handlers.employer import companies as employer_companies_handlers
 from service_layer.handlers.generic import AbstractMessage
 from service_layer.unit_of_work.generic import AbstractUnitOfWork
@@ -58,9 +58,9 @@ COMMANDS = {
     employer_companies_commands.EmployerCompanyRetrieveCommand: None,
     employer_companies_commands.EmployerCompanyDeleteCommand: None,
     employer_companies_commands.EmployerCompanyLeaveCommand: None,
-    contractor_companies_commands.ContractorCompanyListCommand: None,
-    contractor_companies_commands.ContractorCompanyRetrieveCommand: None,
-    contractor_companies_commands.ContractorCompanyLeaveCommand: None,
+    contractor_companies_commands.ContractorCompanyListCommand: contractor_companies_handlers.company_list_handler,
+    contractor_companies_commands.ContractorCompanyRetrieveCommand: contractor_companies_handlers.company_retrieve_handler,
+    contractor_companies_commands.ContractorCompanyLeaveCommand: contractor_companies_handlers.company_leave_handler,
     # bank accounts
     employer_bank_accounts_commands.EmployerSenderBankAccountListCommand: None,
     employer_bank_accounts_commands.EmployerSenderBankAccountCreateCommand: None,
@@ -104,19 +104,22 @@ class MessageBus(AbstractMessageBus):
         uow: AbstractUnitOfWork,
         sms_adapter: AbstractSmsAdapter,
         email_adapter: AbstractEmailAdapter,
-        admin_resources: AbstractAdminResources,
     ) -> None:
         self.uow = uow
         self.sms_adapter = sms_adapter
         self.email_adapter = email_adapter
-        self.admin_resources = admin_resources
 
     async def clean(self) -> None:
         await self.uow.clean()
         await self.sms_adapter.clean()
         await self.email_adapter.clean()
 
-    async def handler(self, message: AbstractMessage, current_user_pk: Optional[UUID4] = None) -> AbstractReponse:
+    async def handler(
+        self,
+        message: AbstractMessage,
+        current_user_pk: Optional[UUID4] = None,
+        current_company_pk: Optional[UUID4] = None,
+    ) -> AbstractReponse:
         message_type = type(message)
         handlers = COMMANDS
         handler_fn = handlers.get(message_type)
@@ -131,6 +134,7 @@ class MessageBus(AbstractMessageBus):
                     sms_adapter=self.sms_adapter,
                     email_adapter=self.email_adapter,
                     current_user_pk=current_user_pk,
+                    current_company_pk=current_company_pk,
                 ),
             ),
         )

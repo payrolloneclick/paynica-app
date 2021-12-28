@@ -3,6 +3,8 @@ from typing import List, Optional
 from pydantic.main import BaseModel
 from pydantic.types import UUID4
 
+from settings import DEFAULT_LIMIT
+
 from ..exceptions import MultipleObjectsReturned, ObjectAlreadyExists, ObjectDoesNotExist
 from ..generic import AbstractRepository
 from ..session.generic import AbstractSession
@@ -30,15 +32,28 @@ class AbstractFakeRepository(AbstractRepository):
             )
         return objs[0]
 
-    async def list(self, **kwargs) -> List[BaseModel]:
-        objs = await self.all()
-        # TODO
-        return objs
+    async def list(
+        self,
+        search: Optional[str] = None,
+        sort_by: Optional[str] = None,
+        offset: Optional[int] = 0,
+        limit: Optional[int] = DEFAULT_LIMIT,
+        **kwargs,
+    ) -> List[BaseModel]:
+        objs = await self.filter(**kwargs)
+        # TODO search, sort_by
+        return objs[offset:limit]
 
     async def filter(self, **kwargs) -> List[BaseModel]:
+        def filter_by(obj, key, value):
+            if "__in" in key:
+                key = key.replace("__in", "")
+                return getattr(obj, key) in value
+            return getattr(obj, key) == value
+
         objs = await self.all()
         for key in kwargs:
-            objs = [o for o in objs if getattr(o, key) == kwargs[key]]
+            objs = [o for o in objs if filter_by(o, key, kwargs[key])]
         return objs
 
     async def first(self, **kwargs) -> Optional[BaseModel]:
