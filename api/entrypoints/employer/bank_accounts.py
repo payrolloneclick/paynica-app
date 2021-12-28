@@ -24,7 +24,6 @@ router = APIRouter(
 
 @router.get("/", response_model=List[SenderBankAccountResponse])
 async def get_sender_bank_accounts(
-    company_pk: Optional[TPrimaryKey] = None,
     offset: Optional[int] = 0,
     limit: Optional[int] = DEFAULT_LIMIT,
     search: Optional[str] = None,
@@ -34,7 +33,6 @@ async def get_sender_bank_accounts(
 ):
     """Get sender bank accounts list for authenticated employer."""
     command = EmployerSenderBankAccountListCommand()
-    command.sender_owner_company_pk = company_pk
     command.offset = offset
     command.limit = limit
     command.search = search

@@ -18,6 +18,7 @@ class FakeUnitOfWork(AbstractUnitOfWork):
         self.recipient_bank_accounts = bank_accounts.RecipientBankAccountFakeRepository(self.session)
         self.sender_bank_accounts = bank_accounts.SenderBankAccountFakeRepository(self.session)
         self.invoices = invoices.InvoicesFakeRepository(self.session)
+        self.invoice_items = invoices.InvoiceItemsFakeRepository(self.session)
         self.operations = operations.OperationsFakeRepository(self.session)
 
     async def clean(self):

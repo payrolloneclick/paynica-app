@@ -18,7 +18,6 @@ router = APIRouter(
 
 @router.get("/", response_model=List[OperationResponse])
 async def get_operations(
-    company_pk: Optional[TPrimaryKey] = None,
     offset: Optional[int] = 0,
     limit: Optional[int] = DEFAULT_LIMIT,
     search: Optional[str] = None,
@@ -28,7 +27,6 @@ async def get_operations(
 ):
     """Get operations for authenticated employer."""
     command = EmployerOperationListCommand()
-    command.operation_owner_company_pk = company_pk
     command.offset = offset
     command.limit = limit
     command.search = search

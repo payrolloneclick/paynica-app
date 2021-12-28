@@ -6,11 +6,10 @@ from ..generic import AbstractCommand, AbstractListCommand
 
 
 class ContractorRecipientBankAccountListCommand(AbstractListCommand):
-    recipient_owner_company_pk: TPrimaryKey
+    pass
 
 
 class ContractorRecipientBankAccountCreateCommand(AbstractCommand):
-    recipient_owner_company_pk: TPrimaryKey
     recipient_currency: TCurrency
     recipient_country_alpha3: TCountry
 

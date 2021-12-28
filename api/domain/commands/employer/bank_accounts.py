@@ -6,7 +6,7 @@ from ..generic import AbstractCommand, AbstractListCommand
 
 
 class EmployerSenderBankAccountListCommand(AbstractListCommand):
-    sender_owner_company_pk: Optional[TPrimaryKey]
+    pass
 
 
 class EmployerSenderBankAccountCreateCommand(AbstractCommand):

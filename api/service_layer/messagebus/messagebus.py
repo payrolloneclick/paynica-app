@@ -17,7 +17,10 @@ from domain.commands.employer import operations as employer_operations_commands
 from domain.responses.generic import AbstractReponse
 from service_layer.exceptions import ServiceException
 from service_layer.handlers import users as users_handlers
+from service_layer.handlers.contractor import bank_accounts as contractor_bank_accounts_handlers
 from service_layer.handlers.contractor import companies as contractor_companies_handlers
+from service_layer.handlers.contractor import invoices as contractor_invoices_handlers
+from service_layer.handlers.contractor import operations as contractor_operations_handlers
 from service_layer.handlers.employer import companies as employer_companies_handlers
 from service_layer.handlers.generic import AbstractMessage
 from service_layer.unit_of_work.generic import AbstractUnitOfWork
@@ -67,26 +70,26 @@ COMMANDS = {
     employer_bank_accounts_commands.EmployerSenderBankAccountUpdateCommand: None,
     employer_bank_accounts_commands.EmployerSenderBankAccountRetrieveCommand: None,
     employer_bank_accounts_commands.EmployerSenderBankAccountDeleteCommand: None,
-    contractor_bank_accounts_commands.ContractorRecipientBankAccountListCommand: None,
-    contractor_bank_accounts_commands.ContractorRecipientBankAccountCreateCommand: None,
-    contractor_bank_accounts_commands.ContractorRecipientBankAccountUpdateCommand: None,
-    contractor_bank_accounts_commands.ContractorRecipientBankAccountRetrieveCommand: None,
-    contractor_bank_accounts_commands.ContractorRecipientBankAccountDeleteCommand: None,
+    contractor_bank_accounts_commands.ContractorRecipientBankAccountListCommand: contractor_bank_accounts_handlers.recipient_bank_account_list_handler,
+    contractor_bank_accounts_commands.ContractorRecipientBankAccountCreateCommand: contractor_bank_accounts_handlers.recipient_bank_account_create_handler,
+    contractor_bank_accounts_commands.ContractorRecipientBankAccountUpdateCommand: contractor_bank_accounts_handlers.recipient_bank_account_update_handler,
+    contractor_bank_accounts_commands.ContractorRecipientBankAccountRetrieveCommand: contractor_bank_accounts_handlers.recipient_bank_account_retrieve_handler,
+    contractor_bank_accounts_commands.ContractorRecipientBankAccountDeleteCommand: contractor_bank_accounts_handlers.recipient_bank_account_delete_handler,
     # invoices
     employer_invoices_commands.EmployerInvoiceListCommand: None,
     employer_invoices_commands.EmployerInvoiceRetrieveCommand: None,
     employer_invoices_commands.EmployerInvoicePayCommand: None,
     employer_invoices_commands.EmployerBulkInvoicePayCommand: None,
-    contractor_invoices_commands.ContractorInvoiceListCommand: None,
-    contractor_invoices_commands.ContractorInvoiceCreateCommand: None,
-    contractor_invoices_commands.ContractorInvoiceUpdateCommand: None,
-    contractor_invoices_commands.ContractorInvoiceRetrieveCommand: None,
-    contractor_invoices_commands.ContractorInvoiceDeleteCommand: None,
+    contractor_invoices_commands.ContractorInvoiceListCommand: contractor_invoices_handlers.invoice_list_handler,
+    contractor_invoices_commands.ContractorInvoiceCreateCommand: contractor_invoices_handlers.invoice_create_handler,
+    contractor_invoices_commands.ContractorInvoiceUpdateCommand: contractor_invoices_handlers.invoice_update_handler,
+    contractor_invoices_commands.ContractorInvoiceRetrieveCommand: contractor_invoices_handlers.invoice_retrieve_handler,
+    contractor_invoices_commands.ContractorInvoiceDeleteCommand: contractor_invoices_handlers.invoice_delete_handler,
     # operations
     employer_operations_commands.EmployerOperationListCommand: None,
     employer_operations_commands.EmployerOperationRetrieveCommand: None,
-    contractor_operations_commands.ContractorOperationListCommand: None,
-    contractor_operations_commands.ContractorOperationRetrieveCommand: None,
+    contractor_operations_commands.ContractorOperationListCommand: contractor_operations_handlers.operation_list_command,
+    contractor_operations_commands.ContractorOperationRetrieveCommand: contractor_operations_handlers.operation_retrieve_command,
 }
 
 EVENTS = {}

@@ -140,11 +140,11 @@ async def signup_user_handler(
         else:
             user = User(
                 pk=uuid4(),
+                created_date=datetime.utcnow(),
                 email=message.email,
                 role=message.role,
                 is_active=False,
                 is_onboarded=False,
-                created_date=datetime.utcnow(),
             )
             await user.set_password(message.password)
             await uow.users.add(user)
@@ -297,11 +297,11 @@ async def generate_invitation_code_handler(
         if not user:
             user = User(
                 pk=uuid4(),
+                created_date=datetime.utcnow(),
                 email=message.email,
                 role=TRole.CONTRACTOR,
                 is_active=False,
                 is_onboarded=False,
-                created_date=datetime.utcnow(),
             )
             await uow.users.add(user)
         if user.role == TRole.EMPLOYER and await uow.companies_m2m_employers.exists(
@@ -341,17 +341,17 @@ async def invite_user_handler(
         if user.role == TRole.EMPLOYER:
             company_m2m_employer = CompanyM2MEmployer(
                 pk=uuid4(),
+                created_date=datetime.utcnow(),
                 company_pk=invite_user_to_company.company_pk,
                 employer_pk=user.pk,
-                created_date=datetime.utcnow(),
             )
             await uow.companies_m2m_employers.add(company_m2m_employer)
         if user.role == TRole.CONTRACTOR:
             company_m2m_contractor = CompanyM2MContractor(
                 pk=uuid4(),
+                created_date=datetime.utcnow(),
                 company_pk=invite_user_to_company.company_pk,
                 contractor_pk=user.pk,
-                created_date=datetime.utcnow(),
             )
             await uow.companies_m2m_contractors.add(company_m2m_contractor)
         await uow.invite_users_to_companies.delete(invite_user_to_company.pk)
