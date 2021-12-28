@@ -88,8 +88,8 @@ COMMANDS = {
     # operations
     employer_operations_commands.EmployerOperationListCommand: None,
     employer_operations_commands.EmployerOperationRetrieveCommand: None,
-    contractor_operations_commands.ContractorOperationListCommand: contractor_operations_handlers.operation_list_command,
-    contractor_operations_commands.ContractorOperationRetrieveCommand: contractor_operations_handlers.operation_retrieve_command,
+    contractor_operations_commands.ContractorOperationListCommand: contractor_operations_handlers.operation_list_handler,
+    contractor_operations_commands.ContractorOperationRetrieveCommand: contractor_operations_handlers.operation_retrieve_handler,
 }
 
 EVENTS = {}
