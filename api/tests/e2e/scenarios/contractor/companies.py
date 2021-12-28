@@ -52,3 +52,17 @@ async def retrieve_company(
     company = response.json()
     assert "pk" in company
     return company
+
+
+async def leave_company(
+    async_client: AsyncClient,
+    email: str,
+    password: str,
+    pk: TPrimaryKey,
+) -> dict:
+    response = await signin_generate_access_token(async_client, email, password)
+    access_token = response["access_token"]
+    url = f"/contractor/companies/{pk}/leave"
+    response = await async_client.post(url, headers={"Authorization": "Bearer {}".format(access_token)}, json={})
+    assert response.status_code == 200, response.text
+    assert response.json() is None

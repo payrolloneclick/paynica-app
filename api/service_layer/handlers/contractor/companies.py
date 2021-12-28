@@ -57,4 +57,5 @@ async def company_leave_handler(
         )
         if not company_m2m_contractor:
             raise PermissionDeniedException(detail=f"Contractor has no access to company with pk {message.company_pk}")
-        uow.companies_m2m_contractors.delete(company_m2m_contractor.pk)
+        await uow.companies_m2m_contractors.delete(company_m2m_contractor.pk)
+        await uow.commit()
