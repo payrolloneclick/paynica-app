@@ -20,7 +20,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=List[CompanyResponse])
+@router.get("", response_model=List[CompanyResponse])
 async def get_companies(
     offset: Optional[int] = 0,
     limit: Optional[int] = DEFAULT_LIMIT,

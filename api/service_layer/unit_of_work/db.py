@@ -18,6 +18,7 @@ class DBUnitOfWork(AbstractUnitOfWork):
         self.recipient_bank_accounts = bank_accounts.RecipientBankAccountDBRepository(self.session)
         self.sender_bank_accounts = bank_accounts.SenderBankAccountDBRepository(self.session)
         self.invoices = invoices.InvoicesDBRepository(self.session)
+        self.invoice_items = invoices.InvoiceItemsDBRepository(self.session)
         self.operations = operations.OperationsDBRepository(self.session)
 
     async def __aexit__(self, *args, **kwargs):

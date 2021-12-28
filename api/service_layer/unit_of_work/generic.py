@@ -12,6 +12,7 @@ class AbstractUnitOfWork(abc.ABC):
     recipient_bank_accounts: bank_accounts.RecipientBankAccountDBRepository
     sender_bank_accounts: bank_accounts.SenderBankAccountDBRepository
     invoices: invoices.InvoicesDBRepository
+    invoice_items: invoices.InvoiceItemsDBRepository
     operations: operations.OperationsDBRepository
 
     async def __aexit__(self, *args, **kwargs):

@@ -9,7 +9,7 @@ from ..generic import AbstractCommand, AbstractListCommand
 
 
 class ContractorInvoiceListCommand(AbstractListCommand):
-    for_company_pk: TPrimaryKey
+    pass
 
 
 class InvoiceItemCreate(AbstractCommand):

@@ -1,16 +1,16 @@
 from typing import Optional
 
-from domain.types import TCountry, TCurrency, TPrimaryKey
+from domain.types import TBankAccountType, TCountry, TCurrency, TPrimaryKey
 
 from ..generic import AbstractCommand, AbstractListCommand
 
 
 class EmployerSenderBankAccountListCommand(AbstractListCommand):
-    sender_owner_company_pk: Optional[TPrimaryKey]
+    pass
 
 
 class EmployerSenderBankAccountCreateCommand(AbstractCommand):
-    sender_owner_company_pk: TPrimaryKey
+    sender_bank_account_type: TBankAccountType
     sender_currency: TCurrency
     sender_country_alpha3: TCountry
 

@@ -4,15 +4,16 @@ from uuid import UUID
 import jwt
 from fastapi import Depends
 from fastapi.security import HTTPBearer
+from starlette.requests import Request
 
 from bootstrap import bus
-from entrypoints.exceptions import NotAuthorizedException
+from entrypoints.exceptions import HeaderValidationException, NotAuthorizedException
 from settings import JWT_SECRET_KEY
 
 token_auth_scheme = HTTPBearer()
 
 
-async def get_current_user_pk(token: str = Depends(token_auth_scheme)):
+async def get_current_user_pk(token: str = Depends(token_auth_scheme)) -> UUID:
     try:
         decoded_access_token = jwt.decode(token.credentials, JWT_SECRET_KEY, algorithms=["HS256"])
     except jwt.PyJWTError:
@@ -30,3 +31,10 @@ async def get_current_user_pk(token: str = Depends(token_auth_scheme)):
         if not await bus.uow.users.exists(pk=UUID(user_pk), is_active=True):
             raise NotAuthorizedException(detail="Please finish signup process for this user")
     return UUID(user_pk)
+
+
+async def get_current_company_pk(request: Request) -> UUID:
+    company_pk: str = request.headers.get("Company")
+    if not company_pk:
+        raise HeaderValidationException(detail="No company pk in headers of request")
+    return UUID(company_pk)

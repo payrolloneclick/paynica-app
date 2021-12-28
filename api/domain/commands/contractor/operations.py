@@ -4,7 +4,7 @@ from ..generic import AbstractCommand, AbstractListCommand
 
 
 class ContractorOperationListCommand(AbstractListCommand):
-    operation_owner_company_pk: TPrimaryKey
+    pass
 
 
 class ContractorOperationRetrieveCommand(AbstractCommand):

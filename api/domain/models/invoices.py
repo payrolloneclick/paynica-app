@@ -15,12 +15,12 @@ class Invoice(AbstractModel):
     created_by_pk: TPrimaryKey
     created_by: Optional[User]
 
+    for_company_pk: TPrimaryKey
+    for_company: Optional[Company]
+
     # user bank account
     recipient_account_pk: TPrimaryKey
     recipient_account: Optional[RecipientBankAccount]
-
-    for_company_pk: TPrimaryKey
-    for_company: Optional[Company]
 
     # company bank account
     sender_account_pk: Optional[TPrimaryKey]

@@ -23,6 +23,22 @@ class TRole(str, Enum):
     CONTRACTOR = "CONTRACTOR"
 
 
+class TBankAccountType(str, Enum):
+    BUSINESS = "BUSINESS"
+    PERSONAL = "PERSONAL"
+
+
+class TOperationStatus(str, Enum):
+    CREATING = "CREATING"
+    NEW = "NEW"
+    IN_PROGRESS = "IN_PROGRESS"
+    ACCEPTED = "ACCEPTED"
+    COMPLETED = "COMPLETED"
+    CANCELED = "CANCELED"
+    REJECTED = "REJECTED"
+    FAILED = "FAILED"
+
+
 TPrimaryKey = UUID4
 TEmail = constr(strip_whitespace=True, to_lower=True, regex=EMAIL_REGEXP)
 TPhone = constr(strip_whitespace=True, to_lower=True, min_length=1)
