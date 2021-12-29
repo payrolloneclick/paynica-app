@@ -75,6 +75,21 @@ $ make lint
 $ make fix
 ```
 
+### Create migrations
+
+```sh
+$ cd api
+$ make db_migrate
+```
+
+
+### Apply migrations
+
+```sh
+$ cd api
+$ make db_upgrade
+```
+
 
 ## APP Client
 
