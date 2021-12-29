@@ -15,7 +15,7 @@ from ..permissions import has_role
 async def company_list_handler(
     message: EmployerCompanyListCommand,
     uow: Optional[DBUnitOfWork] = None,
-    current_user_pk: Optional[TPrimaryKey] = None,
+    current_user_id: Optional[TPrimaryKey] = None,
 ) -> List[Company]:
     return []
 
@@ -24,25 +24,25 @@ async def company_list_handler(
 async def company_create_handler(
     message: EmployerCompanyCreateCommand,
     uow: Optional[DBUnitOfWork] = None,
-    current_user_pk: Optional[TPrimaryKey] = None,
+    current_user_id: Optional[TPrimaryKey] = None,
 ) -> Company:
     async with uow:
-        if await uow.users.exists(pk=current_user_pk, role=TRole.CONTRACTOR):
+        if await uow.users.exists(id=current_user_id, role=TRole.CONTRACTOR):
             raise PermissionDeniedException(detail="Contractor cannot create a company")
         if not message.name:
             raise ValidationException(detail="Empty name")
-        if await uow.companies.exists(name=message.name, owner_pk=current_user_pk):
+        if await uow.companies.exists(name=message.name, owner_id=current_user_id):
             raise ValidationException(detail="User already has company with this name")
         company = Company(
-            pk=uuid4(),
+            id=uuid4(),
             name=message.name,
-            owner_pk=current_user_pk,
+            owner_id=current_user_id,
             created_date=datetime.utcnow(),
         )
         company_m2m_employer = CompanyM2MEmployer(
-            pk=uuid4(),
-            company_pk=company.pk,
-            employer_pk=current_user_pk,
+            id=uuid4(),
+            company_id=company.id,
+            employer_id=current_user_id,
             created_date=datetime.utcnow(),
         )
         await uow.companies.add(company)

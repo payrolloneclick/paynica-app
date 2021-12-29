@@ -25,6 +25,34 @@ $ source api/.venv/bin/activate
 
 ## API Server
 
+### Create local DB
+
+```sh
+$ psql -h localhost -U postgres -c 'CREATE DATABASE paynica_db;'
+$ psql -h localhost -U postgres -c 'CREATE DATABASE test_paynica_db;'
+```
+
+### Activate env
+
+```sh
+$ cd api
+$ cp tmpl.env .env
+```
+
+### Create migrations
+
+```sh
+$ cd api
+$ make db_migrate
+```
+
+### Apply migrations
+
+```sh
+$ cd api
+$ make db_upgrade
+```
+
 ### Run locally
 
 ```sh
@@ -45,21 +73,6 @@ $ make test
 $ cd api
 $ make lint
 $ make fix
-```
-
-### Create migrations
-
-```sh
-$ cd api
-$ make db_migrate
-```
-
-
-### Apply migrations
-
-```sh
-$ cd api
-$ make db_upgrade
 ```
 
 

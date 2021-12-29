@@ -16,14 +16,14 @@ class EmployerSenderBankAccountCreateCommand(AbstractCommand):
 
 
 class EmployerSenderBankAccountRetrieveCommand(AbstractCommand):
-    sender_bank_account_pk: TPrimaryKey
+    sender_bank_account_id: TPrimaryKey
 
 
 class EmployerSenderBankAccountUpdateCommand(AbstractCommand):
-    sender_bank_account_pk: TPrimaryKey
+    sender_bank_account_id: TPrimaryKey
     sender_currency: Optional[TCurrency]
     sender_country_alpha3: Optional[TCountry]
 
 
 class EmployerSenderBankAccountDeleteCommand(AbstractCommand):
-    sender_bank_account_pk: TPrimaryKey
+    sender_bank_account_id: TPrimaryKey

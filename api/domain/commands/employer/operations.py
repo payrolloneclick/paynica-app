@@ -8,4 +8,4 @@ class EmployerOperationListCommand(AbstractListCommand):
 
 
 class EmployerOperationRetrieveCommand(AbstractCommand):
-    operation_pk: TPrimaryKey
+    operation_id: TPrimaryKey

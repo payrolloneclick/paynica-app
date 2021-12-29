@@ -16,14 +16,14 @@ class ContractorRecipientBankAccountCreateCommand(AbstractCommand):
 
 
 class ContractorRecipientBankAccountRetrieveCommand(AbstractCommand):
-    recipient_bank_account_pk: TPrimaryKey
+    recipient_bank_account_id: TPrimaryKey
 
 
 class ContractorRecipientBankAccountUpdateCommand(AbstractCommand):
-    recipient_bank_account_pk: TPrimaryKey
+    recipient_bank_account_id: TPrimaryKey
     recipient_currency: Optional[TCurrency]
     recipient_country_alpha3: Optional[TCountry]
 
 
 class ContractorRecipientBankAccountDeleteCommand(AbstractCommand):
-    recipient_bank_account_pk: TPrimaryKey
+    recipient_bank_account_id: TPrimaryKey

@@ -5,9 +5,9 @@ from .generic import AbstractReponse
 
 
 class SenderBankAccountResponse(AbstractReponse):
-    pk: TPrimaryKey
-    sender_owner_company_pk: Optional[TPrimaryKey]
-    sender_owner_user_pk: Optional[TPrimaryKey]
+    id: TPrimaryKey
+    sender_owner_company_id: Optional[TPrimaryKey]
+    sender_owner_user_id: Optional[TPrimaryKey]
 
     sender_bank_account_type: TBankAccountType
     sender_currency: TCurrency
@@ -15,9 +15,9 @@ class SenderBankAccountResponse(AbstractReponse):
 
 
 class RecipientBankAccountResponse(AbstractReponse):
-    pk: TPrimaryKey
-    recipient_owner_company_pk: Optional[TPrimaryKey]
-    recipient_owner_user_pk: Optional[TPrimaryKey]
+    id: TPrimaryKey
+    recipient_owner_company_id: Optional[TPrimaryKey]
+    recipient_owner_user_id: Optional[TPrimaryKey]
 
     recipient_bank_account_type: TBankAccountType
     recipient_currency: TCurrency

@@ -14,11 +14,11 @@ async def test_create_company(async_client):
     db_user = await signup_user(async_client, "employer@test.com", TRole.EMPLOYER, "password")
     await signup_verify_email(async_client, "employer@test.com")
     company_data = await create_company(async_client, "employer@test.com", "password", "Employer Company")
-    company_pk = company_data["pk"]
+    company_id = company_data["id"]
     async with bus.uow:
-        assert await bus.uow.companies_m2m_employers.exists(company_pk=uuid.UUID(company_pk), employer_pk=db_user.pk)
+        assert await bus.uow.companies_m2m_employers.exists(company_id=uuid.UUID(company_id), employer_id=db_user.id)
         assert not await bus.uow.companies_m2m_contractors.exists(
-            company_pk=uuid.UUID(company_pk), contractor_pk=db_user.pk
+            company_id=uuid.UUID(company_id), contractor_id=db_user.id
         )
 
 

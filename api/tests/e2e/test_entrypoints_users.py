@@ -526,7 +526,7 @@ async def test_get_profile(async_client):
     await signup_user(async_client, "test@test.com", TRole.EMPLOYER, "password")
     await signup_verify_email(async_client, "test@test.com")
     response = await get_profile(async_client, "test@test.com", "password")
-    assert "pk" in response
+    assert "id" in response
 
 
 @pytest.mark.asyncio
@@ -734,7 +734,7 @@ async def test_invite_registered_user(async_client):
     company_data = await create_company(async_client, "employer@test.com", "password", "Employer Company")
     await signup_user(async_client, "contractor@test.com", TRole.CONTRACTOR, "password")
     await signup_verify_email(async_client, "contractor@test.com")
-    await invite_user(async_client, company_data["pk"], "employer@test.com", "password", "contractor@test.com")
+    await invite_user(async_client, company_data["id"], "employer@test.com", "password", "contractor@test.com")
 
 
 @pytest.mark.asyncio
@@ -742,7 +742,7 @@ async def test_invite_non_registered_user(async_client):
     await signup_user(async_client, "employer@test.com", TRole.EMPLOYER, "password")
     await signup_verify_email(async_client, "employer@test.com")
     company_data = await create_company(async_client, "employer@test.com", "password", "Employer Company")
-    await invite_user(async_client, company_data["pk"], "employer@test.com", "password", "contractor@test.com")
+    await invite_user(async_client, company_data["id"], "employer@test.com", "password", "contractor@test.com")
 
 
 @pytest.mark.asyncio
@@ -752,7 +752,7 @@ async def test_invite_user_4xx(async_client):
     await signup_user(async_client, "employer@test.com", TRole.EMPLOYER, "password")
     await signup_verify_email(async_client, "employer@test.com")
     company_data = await create_company(async_client, "employer@test.com", "password", "Employer Company")
-    company_pk = company_data["pk"]
+    company_id = company_data["id"]
     response = await async_client.post(
         send_invitation_code_url,
         json={},
@@ -771,7 +771,7 @@ async def test_invite_user_4xx(async_client):
 
     data = {
         "email": "contractor@test.com",
-        "company_pk": company_pk,
+        "company_id": company_id,
     }
     response = await async_client.post(
         send_invitation_code_url,
@@ -786,7 +786,7 @@ async def test_invite_user_4xx(async_client):
         send_invitation_code_url,
         headers={"Authorization": "Bearer {}".format(access_token)},
         json={
-            "company_pk": company_pk,
+            "company_id": company_id,
         },
     )
     assert response.status_code == 422, response.text
@@ -794,7 +794,7 @@ async def test_invite_user_4xx(async_client):
     response = await async_client.post(
         send_invitation_code_url,
         headers={"Authorization": "Bearer {}".format(access_token)},
-        json={**data, "company_pk": "invalid_pk"},
+        json={**data, "company_id": "invalid_id"},
     )
     assert response.status_code == 422, response.text
 
@@ -808,7 +808,7 @@ async def test_invite_user_4xx(async_client):
     response = await async_client.post(
         send_invitation_code_url,
         headers={"Authorization": "Bearer {}".format(access_token)},
-        json={**data, "company_pk": str(uuid.uuid4())},
+        json={**data, "company_id": str(uuid.uuid4())},
     )
     assert response.status_code == 422, response.text
 

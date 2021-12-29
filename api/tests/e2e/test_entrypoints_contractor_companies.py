@@ -18,7 +18,7 @@ async def test_companies_list(async_client):
     await create_company(async_client, "employer@test.com", "password", "Employer Company")
     for i in range(2):
         company = await create_company(async_client, "employer@test.com", "password", f"Employer Company {i}")
-        await invite_user(async_client, company["pk"], "employer@test.com", "password", "contractor@test.com")
+        await invite_user(async_client, company["id"], "employer@test.com", "password", "contractor@test.com")
 
     company_data = await list_companies(
         async_client,
@@ -76,15 +76,15 @@ async def test_companies_retrieve(async_client):
     await signup_verify_email(async_client, "contractor@test.com")
 
     company = await create_company(async_client, "employer@test.com", "password", "Employer Company")
-    await invite_user(async_client, company["pk"], "employer@test.com", "password", "contractor@test.com")
+    await invite_user(async_client, company["id"], "employer@test.com", "password", "contractor@test.com")
 
     company_data = await retrieve_company(
         async_client,
         "contractor@test.com",
         "password",
-        company["pk"],
+        company["id"],
     )
-    assert company_data["pk"] == company["pk"]
+    assert company_data["id"] == company["id"]
 
 
 @pytest.mark.asyncio
@@ -95,9 +95,9 @@ async def test_companies_retrieve_4xx(async_client):
     await signup_verify_email(async_client, "contractor@test.com")
 
     company = await create_company(async_client, "employer@test.com", "password", "Employer Company")
-    pk = company["pk"]
+    id = company["id"]
 
-    url = f"/contractor/companies/{pk}"
+    url = f"/contractor/companies/{id}"
 
     response = await async_client.get(url)
     assert response.status_code == 403, response.text
@@ -110,7 +110,7 @@ async def test_companies_retrieve_4xx(async_client):
     )
     assert response.status_code == 403, response.text
 
-    await invite_user(async_client, pk, "employer@test.com", "password", "contractor@test.com")
+    await invite_user(async_client, id, "employer@test.com", "password", "contractor@test.com")
     response = await async_client.get(
         f"/contractor/companies/{uuid4()}",
         headers={"Authorization": "Bearer {}".format(access_token)},
@@ -134,13 +134,13 @@ async def test_companies_leave(async_client):
     await signup_verify_email(async_client, "contractor@test.com")
 
     company = await create_company(async_client, "employer@test.com", "password", "Employer Company")
-    pk = company["pk"]
-    await invite_user(async_client, pk, "employer@test.com", "password", "contractor@test.com")
+    id = company["id"]
+    await invite_user(async_client, id, "employer@test.com", "password", "contractor@test.com")
 
     response = await signin_generate_access_token(async_client, "contractor@test.com", "password")
     access_token = response["access_token"]
 
-    url = f"/contractor/companies/{pk}"
+    url = f"/contractor/companies/{id}"
     response = await async_client.get(
         url,
         headers={"Authorization": "Bearer {}".format(access_token)},
@@ -151,7 +151,7 @@ async def test_companies_leave(async_client):
         async_client,
         "contractor@test.com",
         "password",
-        pk,
+        id,
     )
     response = await async_client.get(
         url,
@@ -168,9 +168,9 @@ async def test_companies_leave_4xx(async_client):
     await signup_verify_email(async_client, "contractor@test.com")
 
     company = await create_company(async_client, "employer@test.com", "password", "Employer Company")
-    pk = company["pk"]
+    id = company["id"]
 
-    url = f"/contractor/companies/{pk}/leave"
+    url = f"/contractor/companies/{id}/leave"
 
     response = await async_client.post(url)
     assert response.status_code == 403, response.text
@@ -183,7 +183,7 @@ async def test_companies_leave_4xx(async_client):
     )
     assert response.status_code == 403, response.text
 
-    await invite_user(async_client, pk, "employer@test.com", "password", "contractor@test.com")
+    await invite_user(async_client, id, "employer@test.com", "password", "contractor@test.com")
     response = await async_client.post(
         f"/contractor/companies/{uuid4()}/leave",
         headers={"Authorization": "Bearer {}".format(access_token)},

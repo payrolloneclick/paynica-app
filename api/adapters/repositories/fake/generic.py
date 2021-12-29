@@ -17,10 +17,10 @@ class AbstractFakeRepository(AbstractRepository):
             self.session.objects[self.__class__.__name__] = {}
 
     async def add(self, obj: BaseModel) -> None:
-        if obj.pk in self.session.objects:
+        if obj.id in self.session.objects:
             raise ObjectAlreadyExists
         print(obj)
-        self.session.objects[self.__class__.__name__][obj.pk] = obj
+        self.session.objects[self.__class__.__name__][obj.id] = obj
 
     async def get(self, **kwargs) -> BaseModel:
         objs = await self.filter(**kwargs)
@@ -42,7 +42,7 @@ class AbstractFakeRepository(AbstractRepository):
     ) -> List[BaseModel]:
         objs = await self.filter(**kwargs)
         # TODO search, sort_by
-        return objs[offset:limit]
+        return objs[offset : offset + limit]  # noqa
 
     async def filter(self, **kwargs) -> List[BaseModel]:
         def filter_by(obj, key, value):
@@ -74,14 +74,14 @@ class AbstractFakeRepository(AbstractRepository):
         return [o for o in self.session.objects[self.__class__.__name__].values()]
 
     async def update(self, obj: BaseModel) -> None:
-        if obj.pk not in self.session.objects[self.__class__.__name__]:
+        if obj.id not in self.session.objects[self.__class__.__name__]:
             raise ObjectDoesNotExist
         print(obj)
-        self.session.objects[self.__class__.__name__][obj.pk] = obj
+        self.session.objects[self.__class__.__name__][obj.id] = obj
 
-    async def delete(self, pk: UUID4) -> UUID4:
-        if pk not in self.session.objects[self.__class__.__name__]:
+    async def delete(self, id: UUID4) -> UUID4:
+        if id not in self.session.objects[self.__class__.__name__]:
             raise ObjectDoesNotExist
-        if pk in self.session.objects[self.__class__.__name__]:
-            del self.session.objects[self.__class__.__name__][pk]
-        return pk
+        if id in self.session.objects[self.__class__.__name__]:
+            del self.session.objects[self.__class__.__name__][id]
+        return id

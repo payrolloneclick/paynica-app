@@ -8,8 +8,8 @@ class ContractorCompanyListCommand(AbstractListCommand):
 
 
 class ContractorCompanyRetrieveCommand(AbstractCommand):
-    company_pk: TPrimaryKey
+    company_id: TPrimaryKey
 
 
 class ContractorCompanyLeaveCommand(AbstractCommand):
-    company_pk: TPrimaryKey
+    company_id: TPrimaryKey

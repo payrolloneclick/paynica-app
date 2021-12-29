@@ -11,11 +11,15 @@ class AbstractSession(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def commit(self) -> None:
+    async def start(self, transaction: any) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def rollback(self) -> None:
+    async def commit(self, transaction: any) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def rollback(self, transaction: any) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod

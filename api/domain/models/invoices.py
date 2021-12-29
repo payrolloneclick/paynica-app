@@ -12,26 +12,26 @@ from .users import User
 
 
 class Invoice(AbstractModel):
-    created_by_pk: TPrimaryKey
+    created_by_id: TPrimaryKey
     created_by: Optional[User]
 
-    for_company_pk: TPrimaryKey
+    for_company_id: TPrimaryKey
     for_company: Optional[Company]
 
     # user bank account
-    recipient_account_pk: TPrimaryKey
+    recipient_account_id: TPrimaryKey
     recipient_account: Optional[RecipientBankAccount]
 
     # company bank account
-    sender_account_pk: Optional[TPrimaryKey]
+    sender_account_id: Optional[TPrimaryKey]
     sender_account: Optional[SenderBankAccount]
 
-    operation_pk: Optional[TPrimaryKey]
+    operation_id: Optional[TPrimaryKey]
     operation: Optional[Operation]
 
 
 class InvoiceItem(AbstractModel):
-    invoice_pk: TPrimaryKey
+    invoice_id: TPrimaryKey
     invoice: Optional[Invoice]
     amount: Decimal
     quantity: int

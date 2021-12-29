@@ -9,7 +9,7 @@ from domain.types import TRole
 @pytest.mark.asyncio
 async def test_verify_password():
     user = User(
-        pk=uuid.uuid4(),
+        id=uuid.uuid4(),
         role=TRole.EMPLOYER,
         email="test@test.com",
         phone="+1 800 444 4444",

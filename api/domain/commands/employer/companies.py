@@ -16,17 +16,17 @@ class EmployerCompanyCreateCommand(AbstractCommand):
 
 
 class EmployerCompanyRetrieveCommand(AbstractCommand):
-    company_pk: TPrimaryKey
+    company_id: TPrimaryKey
 
 
 class EmployerCompanyUpdateCommand(AbstractCommand):
-    company_pk: Optional[TPrimaryKey]
+    company_id: Optional[TPrimaryKey]
     name: Optional[constr(strip_whitespace=True)]
 
 
 class EmployerCompanyDeleteCommand(AbstractCommand):
-    company_pk: TPrimaryKey
+    company_id: TPrimaryKey
 
 
 class EmployerCompanyLeaveCommand(AbstractCommand):
-    company_pk: TPrimaryKey
+    company_id: TPrimaryKey

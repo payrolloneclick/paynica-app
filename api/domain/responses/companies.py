@@ -3,5 +3,5 @@ from .generic import AbstractReponse
 
 
 class CompanyResponse(AbstractReponse):
-    pk: TPrimaryKey
+    id: TPrimaryKey
     name: str

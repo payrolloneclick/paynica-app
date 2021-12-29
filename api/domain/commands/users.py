@@ -124,7 +124,7 @@ class ChangePasswordCommand(AbstractCommand):
 
 
 class GenerateInvitationCodeCommand(AbstractCommand):
-    company_pk: TPrimaryKey
+    company_id: TPrimaryKey
     email: TEmail
 
 

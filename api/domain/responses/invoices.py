@@ -8,16 +8,16 @@ from .generic import AbstractReponse
 
 
 class InvoiceItem(AbstractReponse):
-    pk: TPrimaryKey
+    id: TPrimaryKey
     price: Decimal
     quantity: int
     descripion: constr(strip_whitespace=True)
 
 
 class InvoiceResponse(AbstractReponse):
-    pk: TPrimaryKey
-    invoice_owner_company_pk: TPrimaryKey
-    invoice_owner_user_pk: TPrimaryKey
-    recipient_account_pk: TPrimaryKey
+    id: TPrimaryKey
+    invoice_owner_company_id: TPrimaryKey
+    invoice_owner_user_id: TPrimaryKey
+    recipient_account_id: TPrimaryKey
     recipient_amount: Decimal
     items: List[InvoiceItem]

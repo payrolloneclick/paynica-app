@@ -2,8 +2,7 @@ from .generic import AbstractSession
 
 
 class FakeSession(AbstractSession):
-    def __init__(self, uri: str) -> None:
-        self.uri = uri
+    def __init__(self) -> None:
         self.objects = {}
 
     async def open(self) -> None:
@@ -12,10 +11,13 @@ class FakeSession(AbstractSession):
     async def clean(self) -> None:
         self.objects = {}
 
-    async def commit(self) -> None:
+    async def start(self, transaction: any) -> None:
         pass
 
-    async def rollback(self) -> None:
+    async def commit(self, transaction: any) -> None:
+        pass
+
+    async def rollback(self, transaction: any) -> None:
         pass
 
     async def close(self) -> None:
