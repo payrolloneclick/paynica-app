@@ -6,7 +6,7 @@ from .generic import AbstractReponse
 
 
 class UserResponse(AbstractReponse):
-    pk: Optional[TPrimaryKey]
+    id: Optional[TPrimaryKey]
     email: Optional[TEmail]
     phone: Optional[TPhone]
     first_name: Optional[str]

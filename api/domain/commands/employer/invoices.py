@@ -10,12 +10,12 @@ class EmployerInvoiceListCommand(AbstractListCommand):
 
 
 class EmployerInvoiceRetrieveCommand(AbstractCommand):
-    invoice_pk: TPrimaryKey
+    invoice_id: TPrimaryKey
 
 
 class EmployerInvoicePayCommand(AbstractCommand):
-    invoice_pk: TPrimaryKey
+    invoice_id: TPrimaryKey
 
 
 class EmployerBulkInvoicePayCommand(AbstractCommand):
-    invoice_pks: List[TPrimaryKey]
+    invoice_ids: List[TPrimaryKey]

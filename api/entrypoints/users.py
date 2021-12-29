@@ -25,7 +25,7 @@ from domain.commands.users import (
 from domain.responses.users import GenerateAccessTokenResponse, RefreshAccessTokenResponse, UserResponse
 from domain.types import TPrimaryKey
 
-from .dependencies import get_current_user_pk
+from .dependencies import get_current_user_id
 
 router = APIRouter(
     prefix="/users",
@@ -121,38 +121,38 @@ async def reset_password(
 
 @router.get("/profile", response_model=UserResponse)
 async def get_profile(
-    current_user_pk: TPrimaryKey = Depends(get_current_user_pk),
+    current_user_id: TPrimaryKey = Depends(get_current_user_id),
 ):
     """Get profile of authenticated user."""
-    result = await bus.handler(ProfileRetrieveCommand(), current_user_pk=current_user_pk)
+    result = await bus.handler(ProfileRetrieveCommand(), current_user_id=current_user_id)
     return UserResponse(**result.dict())
 
 
 @router.patch("/profile", response_model=UserResponse)
 async def update_profile(
     command: ProfileUpdateCommand,
-    current_user_pk: TPrimaryKey = Depends(get_current_user_pk),
+    current_user_id: TPrimaryKey = Depends(get_current_user_id),
 ):
     """Update profile of authenticated user."""
-    result = await bus.handler(command, current_user_pk=current_user_pk)
+    result = await bus.handler(command, current_user_id=current_user_id)
     return UserResponse(**result.dict())
 
 
 @router.delete("/profile")
 async def delete_profile(
-    current_user_pk: TPrimaryKey = Depends(get_current_user_pk),
+    current_user_id: TPrimaryKey = Depends(get_current_user_id),
 ):
     """Delete/inactivate profile of authenticated user."""
-    await bus.handler(ProfileDeleteCommand(), current_user_pk=current_user_pk)
+    await bus.handler(ProfileDeleteCommand(), current_user_id=current_user_id)
 
 
 @router.patch("/change-password", response_model=UserResponse)
 async def change_password(
     command: ChangePasswordCommand,
-    current_user_pk: TPrimaryKey = Depends(get_current_user_pk),
+    current_user_id: TPrimaryKey = Depends(get_current_user_id),
 ):
     """Change password of authenticated user."""
-    result = await bus.handler(command, current_user_pk=current_user_pk)
+    result = await bus.handler(command, current_user_id=current_user_id)
     return UserResponse(**result.dict())
 
 
@@ -160,10 +160,10 @@ async def change_password(
 async def send_invitation_code(
     command: GenerateInvitationCodeCommand,
     background_tasks: BackgroundTasks,
-    current_employer_pk: TPrimaryKey = Depends(get_current_user_pk),
+    current_employer_id: TPrimaryKey = Depends(get_current_user_id),
 ):
     """Send email code to verify email. Only employer can invite to companies."""
-    result = await bus.handler(command, current_user_pk=current_employer_pk)
+    result = await bus.handler(command, current_user_id=current_employer_id)
     send_command = SendInvitationCodeByEmailCommand(invite_user_to_company=result)
     background_tasks.add_task(bus.handler, send_command)
 

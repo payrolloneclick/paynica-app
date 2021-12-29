@@ -9,19 +9,19 @@ from .users import User
 
 
 class Operation(SenderBankAccount, RecipientBankAccount, AbstractModel):
-    operation_owner_company_pk: TPrimaryKey
+    operation_owner_company_id: TPrimaryKey
     operation_owner_company: Optional[Company]
 
-    operation_sender_user_pk: TPrimaryKey
+    operation_sender_user_id: TPrimaryKey
     operation_sender_user: Optional[User]
-    operation_recipient_user_pk: TPrimaryKey
+    operation_recipient_user_id: TPrimaryKey
     operation_recipient_user: Optional[User]
 
-    sender_account_pk: Optional[TPrimaryKey]
+    sender_account_id: Optional[TPrimaryKey]
     sender_account: Optional[SenderBankAccount]
     sender_amount: Optional[Decimal]
 
-    recipient_account_pk: Optional[TPrimaryKey]
+    recipient_account_id: Optional[TPrimaryKey]
     recipient_account: Optional[RecipientBankAccount]
     recipient_amount: Optional[Decimal]
 

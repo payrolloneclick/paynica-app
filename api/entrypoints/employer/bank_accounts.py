@@ -14,7 +14,7 @@ from domain.responses.bank_accounts import SenderBankAccountResponse
 from domain.types import TPrimaryKey
 from settings import DEFAULT_LIMIT
 
-from ..dependencies import get_current_company_pk, get_current_user_pk
+from ..dependencies import get_current_company_id, get_current_user_id
 
 router = APIRouter(
     prefix="/employer/sender-bank-accounts",
@@ -28,8 +28,8 @@ async def get_sender_bank_accounts(
     limit: Optional[int] = DEFAULT_LIMIT,
     search: Optional[str] = None,
     sort_by: Optional[str] = None,
-    current_employer_pk: TPrimaryKey = Depends(get_current_user_pk),
-    current_company_pk: TPrimaryKey = Depends(get_current_company_pk),
+    current_employer_id: TPrimaryKey = Depends(get_current_user_id),
+    current_company_id: TPrimaryKey = Depends(get_current_company_id),
 ):
     """Get sender bank accounts list for authenticated employer."""
     command = EmployerSenderBankAccountListCommand()
@@ -39,24 +39,24 @@ async def get_sender_bank_accounts(
     command.sort_by = sort_by
     result = await bus.handler(
         command,
-        current_user_pk=current_employer_pk,
-        current_company_pk=current_company_pk,
+        current_user_id=current_employer_id,
+        current_company_id=current_company_id,
     )
     return [SenderBankAccountResponse(**o.dict()) for o in result]
 
 
-@router.get("/{sender_bank_account_pk}", response_model=SenderBankAccountResponse)
+@router.get("/{sender_bank_account_id}", response_model=SenderBankAccountResponse)
 async def get_sender_bank_account(
-    sender_bank_account_pk: TPrimaryKey,
-    current_employer_pk: TPrimaryKey = Depends(get_current_user_pk),
-    current_company_pk: TPrimaryKey = Depends(get_current_company_pk),
+    sender_bank_account_id: TPrimaryKey,
+    current_employer_id: TPrimaryKey = Depends(get_current_user_id),
+    current_company_id: TPrimaryKey = Depends(get_current_company_id),
 ):
     """Get a sender bank account for authenticated employer."""
-    command = EmployerSenderBankAccountRetrieveCommand(sender_bank_account_pk=sender_bank_account_pk)
+    command = EmployerSenderBankAccountRetrieveCommand(sender_bank_account_id=sender_bank_account_id)
     result = await bus.handler(
         command,
-        current_user_pk=current_employer_pk,
-        current_company_pk=current_company_pk,
+        current_user_id=current_employer_id,
+        current_company_id=current_company_id,
     )
     return SenderBankAccountResponse(**result.dict())
 
@@ -64,45 +64,45 @@ async def get_sender_bank_account(
 @router.post("", response_model=SenderBankAccountResponse)
 async def create_sender_bank_account(
     command: EmployerSenderBankAccountCreateCommand,
-    current_employer_pk: TPrimaryKey = Depends(get_current_user_pk),
-    current_company_pk: TPrimaryKey = Depends(get_current_company_pk),
+    current_employer_id: TPrimaryKey = Depends(get_current_user_id),
+    current_company_id: TPrimaryKey = Depends(get_current_company_id),
 ):
     """Create a sender bank account for authenticated employer."""
     result = await bus.handler(
         command,
-        current_user_pk=current_employer_pk,
-        current_company_pk=current_company_pk,
+        current_user_id=current_employer_id,
+        current_company_id=current_company_id,
     )
     return SenderBankAccountResponse(**result.dict())
 
 
-@router.patch("/{sender_bank_account_pk}", response_model=SenderBankAccountResponse)
+@router.patch("/{sender_bank_account_id}", response_model=SenderBankAccountResponse)
 async def update_sender_bank_account(
-    sender_bank_account_pk: TPrimaryKey,
+    sender_bank_account_id: TPrimaryKey,
     command: EmployerSenderBankAccountUpdateCommand,
-    current_employer_pk: TPrimaryKey = Depends(get_current_user_pk),
-    current_company_pk: TPrimaryKey = Depends(get_current_company_pk),
+    current_employer_id: TPrimaryKey = Depends(get_current_user_id),
+    current_company_id: TPrimaryKey = Depends(get_current_company_id),
 ):
     """Update a sender bank account for authenticated employer."""
-    command.sender_bank_account_pk = sender_bank_account_pk
+    command.sender_bank_account_id = sender_bank_account_id
     result = await bus.handler(
         command,
-        current_user_pk=current_employer_pk,
-        current_company_pk=current_company_pk,
+        current_user_id=current_employer_id,
+        current_company_id=current_company_id,
     )
     return SenderBankAccountResponse(**result.dict())
 
 
-@router.delete("/{sender_bank_account_pk}")
+@router.delete("/{sender_bank_account_id}")
 async def delete_sender_bank_account(
-    sender_bank_account_pk: TPrimaryKey,
-    current_employer_pk: TPrimaryKey = Depends(get_current_user_pk),
-    current_company_pk: TPrimaryKey = Depends(get_current_company_pk),
+    sender_bank_account_id: TPrimaryKey,
+    current_employer_id: TPrimaryKey = Depends(get_current_user_id),
+    current_company_id: TPrimaryKey = Depends(get_current_company_id),
 ):
     """Delete/inactivate a sender bank account for authenticated employer."""
-    command = EmployerSenderBankAccountDeleteCommand(sender_bank_account_pk=sender_bank_account_pk)
+    command = EmployerSenderBankAccountDeleteCommand(sender_bank_account_id=sender_bank_account_id)
     await bus.handler(
         command,
-        current_user_pk=current_employer_pk,
-        current_company_pk=current_company_pk,
+        current_user_id=current_employer_id,
+        current_company_id=current_company_id,
     )

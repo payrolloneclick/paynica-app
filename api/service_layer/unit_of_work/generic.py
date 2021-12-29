@@ -15,10 +15,6 @@ class AbstractUnitOfWork(abc.ABC):
     invoice_items: invoices.InvoiceItemsDBRepository
     operations: operations.OperationsDBRepository
 
-    async def __aexit__(self, *args, **kwargs):
-        # rollback does nothing in case we run commit into context manager before exit
-        await self.rollback()
-
     @abc.abstractmethod
     async def clean(self):
         raise NotImplementedError

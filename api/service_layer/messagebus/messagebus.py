@@ -120,8 +120,8 @@ class MessageBus(AbstractMessageBus):
     async def handler(
         self,
         message: AbstractMessage,
-        current_user_pk: Optional[UUID4] = None,
-        current_company_pk: Optional[UUID4] = None,
+        current_user_id: Optional[UUID4] = None,
+        current_company_id: Optional[UUID4] = None,
     ) -> AbstractReponse:
         message_type = type(message)
         handlers = COMMANDS
@@ -136,8 +136,8 @@ class MessageBus(AbstractMessageBus):
                     uow=self.uow,
                     sms_adapter=self.sms_adapter,
                     email_adapter=self.email_adapter,
-                    current_user_pk=current_user_pk,
-                    current_company_pk=current_company_pk,
+                    current_user_id=current_user_id,
+                    current_company_id=current_company_id,
                 ),
             ),
         )

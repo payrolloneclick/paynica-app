@@ -20,6 +20,6 @@ async def create_company(
     )
     assert response.status_code == 200, response.text
     company_data = response.json()
-    for field in ("pk",):
+    for field in ("id",):
         assert field in company_data, field
     return company_data

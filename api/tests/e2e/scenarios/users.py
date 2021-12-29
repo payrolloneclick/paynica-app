@@ -110,7 +110,7 @@ async def signin_generate_access_token(async_client: AsyncClient, email: str, pa
     assert "refresh_token_expired_at" in token_data
     decoded_token_data = jwt.decode(token_data["access_token"], JWT_SECRET_KEY, algorithms=["HS256"])
     async with bus.uow:
-        user = await bus.uow.users.get(pk=uuid.UUID(decoded_token_data["user_pk"]))
+        user = await bus.uow.users.get(id=uuid.UUID(decoded_token_data["user_id"]))
     assert user.email == email
     assert await user.verify_password(password)
     assert decoded_token_data["refresh_token"] == token_data["refresh_token"]
@@ -133,7 +133,7 @@ async def signin_refresh_access_token(async_client: AsyncClient, email: str, pas
 
     decoded_token_data = jwt.decode(token_data["access_token"], JWT_SECRET_KEY, algorithms=["HS256"])
     async with bus.uow:
-        user = await bus.uow.users.get(pk=uuid.UUID(decoded_token_data["user_pk"]))
+        user = await bus.uow.users.get(id=uuid.UUID(decoded_token_data["user_id"]))
     assert user.email == email
     assert await user.verify_password(password)
     assert decoded_token_data["access_token_expired_at"] == token_data["access_token_expired_at"]
@@ -186,7 +186,7 @@ async def get_profile(async_client: AsyncClient, email: str, password: str) -> d
     response = await async_client.get("/users/profile", headers={"Authorization": "Bearer {}".format(access_token)})
     assert response.status_code == 200, response.text
     user_data = response.json()
-    for field in ("pk", "email", "phone", "first_name", "last_name"):
+    for field in ("id", "email", "phone", "first_name", "last_name"):
         assert field in user_data, field
 
     return user_data
@@ -207,11 +207,11 @@ async def update_profile(async_client: AsyncClient, email: str, password: str, d
     )
     assert response.status_code == 200, response.text
     user_data = response.json()
-    for field in ("pk", "email", "phone", "first_name", "last_name"):
+    for field in ("id", "email", "phone", "first_name", "last_name"):
         assert field in user_data, field
 
     async with bus.uow:
-        db_user = await bus.uow.users.get(pk=uuid.UUID(user_data["pk"]))
+        db_user = await bus.uow.users.get(id=uuid.UUID(user_data["id"]))
 
     if "email" in data:
         assert not db_user.is_email_verified
@@ -244,11 +244,11 @@ async def change_password(async_client: AsyncClient, email: str, password: str, 
     )
     assert response.status_code == 200, response.text
     user_data = response.json()
-    for field in ("pk",):
+    for field in ("id",):
         assert field in user_data, field
 
     async with bus.uow:
-        db_user = await bus.uow.users.get(pk=uuid.UUID(user_data["pk"]))
+        db_user = await bus.uow.users.get(id=uuid.UUID(user_data["id"]))
 
     for field in ("password",):
         if field in data:
@@ -267,12 +267,12 @@ async def delete_profile(async_client: AsyncClient, email: str, password: str) -
 
 async def invite_user(
     async_client: AsyncClient,
-    company_pk: str,
+    company_id: str,
     email: str,
     password: str,
     invite_email: str,
 ) -> None:
-    company_pk = uuid.UUID(company_pk)
+    company_id = uuid.UUID(company_id)
     response = await signin_generate_access_token(async_client, email, password)
     access_token = response["access_token"]
     response = await async_client.post(
@@ -280,7 +280,7 @@ async def invite_user(
         headers={"Authorization": "Bearer {}".format(access_token)},
         json={
             "email": invite_email,
-            "company_pk": str(company_pk),
+            "company_id": str(company_id),
         },
     )
     assert response.status_code == 200, response.text
@@ -288,7 +288,7 @@ async def invite_user(
     async with bus.uow:
         db_invite_users_to_companies = await bus.uow.invite_users_to_companies.all()
         db_invite_user_to_company = db_invite_users_to_companies[-1]
-    assert db_invite_user_to_company.company_pk == company_pk
+    assert db_invite_user_to_company.company_id == company_id
     assert db_invite_user_to_company.email == invite_email
     assert db_invite_user_to_company.invitation_code
     invitation_code = db_invite_user_to_company.invitation_code
@@ -300,7 +300,7 @@ async def invite_user(
     )
     assert response.status_code == 200, response.text
     async with bus.uow:
-        assert not await bus.uow.invite_users_to_companies.first(pk=db_invite_user_to_company.pk)
+        assert not await bus.uow.invite_users_to_companies.first(id=db_invite_user_to_company.id)
         invited_user = await bus.uow.users.get(email=invite_email)
-        assert not await bus.uow.companies_m2m_employers.exists(employer_pk=invited_user.pk, company_pk=company_pk)
-        assert await bus.uow.companies_m2m_contractors.exists(contractor_pk=invited_user.pk, company_pk=company_pk)
+        assert not await bus.uow.companies_m2m_employers.exists(employer_id=invited_user.id, company_id=company_id)
+        assert await bus.uow.companies_m2m_contractors.exists(contractor_id=invited_user.id, company_id=company_id)

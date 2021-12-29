@@ -12,8 +12,8 @@ from ..permissions import has_role
 async def operation_list_handler(
     message: ContractorOperationListCommand,
     uow: Optional[DBUnitOfWork] = None,
-    current_user_pk: Optional[TPrimaryKey] = None,
-    current_company_pk: Optional[TPrimaryKey] = None,
+    current_user_id: Optional[TPrimaryKey] = None,
+    current_company_id: Optional[TPrimaryKey] = None,
 ) -> List[Operation]:
     async with uow:
         operations = await uow.operations.list(
@@ -21,8 +21,8 @@ async def operation_list_handler(
             sort_by=message.sort_by,
             limit=message.limit,
             offset=message.offset,
-            operation_recipient_user_pk=current_user_pk,
-            operation_owner_company_pk=current_company_pk,
+            operation_recipient_user_id=current_user_id,
+            operation_owner_company_id=current_company_id,
         )
     return operations
 
@@ -31,15 +31,15 @@ async def operation_list_handler(
 async def operation_retrieve_handler(
     message: ContractorOperationRetrieveCommand,
     uow: Optional[DBUnitOfWork] = None,
-    current_user_pk: Optional[TPrimaryKey] = None,
-    current_company_pk: Optional[TPrimaryKey] = None,
+    current_user_id: Optional[TPrimaryKey] = None,
+    current_company_id: Optional[TPrimaryKey] = None,
 ) -> Operation:
     async with uow:
         operation = await uow.operations.get(
-            pk=message.recipient_bank_account_pk,
-            operation_recipient_user_pk=current_user_pk,
-            operation_owner_company_pk=current_company_pk,
+            id=message.recipient_bank_account_id,
+            operation_recipient_user_id=current_user_id,
+            operation_owner_company_id=current_company_id,
         )
-        operation.sender_account = await uow.sender_bank_accounts.get(pk=operation.sender_account_pk)
-        operation.recipient_account = await uow.recipient_bank_accounts.get(pk=operation.recipient_account_pk)
+        operation.sender_account = await uow.sender_bank_accounts.get(id=operation.sender_account_id)
+        operation.recipient_account = await uow.recipient_bank_accounts.get(id=operation.recipient_account_id)
     return operation

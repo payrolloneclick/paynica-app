@@ -11,7 +11,7 @@ class AccountResponse(AbstractReponse):
 
 
 class OperationResponse(AbstractReponse):
-    pk: TPrimaryKey
+    id: TPrimaryKey
 
     sender_account: Optional[AccountResponse]
     sender_amount: Optional[Decimal]

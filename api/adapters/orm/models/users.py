@@ -1,11 +1,24 @@
 from tortoise import fields
 
-from .generic import AbstractModel
+from domain.models.users import User
+from domain.types import TRole
+
+from .generic import ORMAbstractModel
 
 
-class User(AbstractModel):
+class ChoiceField(fields.CharField):
+    def __init__(self, *args, **kwargs):
+        self.choices = kwargs.pop("choices", [])
+        super().__init__(*args, **kwargs)
+
+    def to_db_value(self, value: any, instance: any) -> any:
+        value = super().to_db_value(value, instance)
+        return value._value_
+
+
+class ORMUser(ORMAbstractModel):
     email = fields.CharField(max_length=255)
-    role = fields.CharField(max_length=16)
+    role = ChoiceField(max_length=16, choices=TRole)
 
     phone = fields.CharField(max_length=255, null=True)
     first_name = fields.CharField(max_length=255, null=True)
@@ -22,3 +35,6 @@ class User(AbstractModel):
     is_active = fields.BooleanField(default=False)
     is_onboarded = fields.BooleanField(default=False)
     is_superuser = fields.BooleanField(default=False)
+
+    class Meta:
+        pydantic_cls = User

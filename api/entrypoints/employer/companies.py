@@ -15,7 +15,7 @@ from domain.responses.companies import CompanyResponse
 from domain.types import TPrimaryKey
 from settings import DEFAULT_LIMIT
 
-from ..dependencies import get_current_user_pk
+from ..dependencies import get_current_user_id
 
 router = APIRouter(
     prefix="/employer/companies",
@@ -29,7 +29,7 @@ async def get_companies(
     limit: Optional[int] = DEFAULT_LIMIT,
     search: Optional[str] = None,
     sort_by: Optional[str] = None,
-    current_employer_pk: TPrimaryKey = Depends(get_current_user_pk),
+    current_employer_id: TPrimaryKey = Depends(get_current_user_id),
 ):
     """Get companies list for authenticated employer."""
     command = EmployerCompanyListCommand()
@@ -37,58 +37,58 @@ async def get_companies(
     command.limit = limit
     command.search = search
     command.sort_by = sort_by
-    result = await bus.handler(command, current_user_pk=current_employer_pk)
+    result = await bus.handler(command, current_user_id=current_employer_id)
     return [CompanyResponse(**o.dict()) for o in result]
 
 
-@router.get("/{company_pk}", response_model=CompanyResponse)
+@router.get("/{company_id}", response_model=CompanyResponse)
 async def get_company(
-    company_pk: TPrimaryKey,
-    current_employer_pk: TPrimaryKey = Depends(get_current_user_pk),
+    company_id: TPrimaryKey,
+    current_employer_id: TPrimaryKey = Depends(get_current_user_id),
 ):
     """Get a company for authenticated employer."""
-    command = EmployerCompanyRetrieveCommand(company_pk=company_pk)
-    result = await bus.handler(command, current_user_pk=current_employer_pk)
+    command = EmployerCompanyRetrieveCommand(company_id=company_id)
+    result = await bus.handler(command, current_user_id=current_employer_id)
     return CompanyResponse(**result.dict())
 
 
 @router.post("", response_model=CompanyResponse)
 async def create_company(
     command: EmployerCompanyCreateCommand,
-    current_employer_pk: TPrimaryKey = Depends(get_current_user_pk),
+    current_employer_id: TPrimaryKey = Depends(get_current_user_id),
 ):
     """Create a company for authenticated employer."""
-    result = await bus.handler(command, current_user_pk=current_employer_pk)
+    result = await bus.handler(command, current_user_id=current_employer_id)
     return CompanyResponse(**result.dict())
 
 
-@router.patch("/{company_pk}", response_model=CompanyResponse)
+@router.patch("/{company_id}", response_model=CompanyResponse)
 async def update_company(
-    company_pk: TPrimaryKey,
+    company_id: TPrimaryKey,
     command: EmployerCompanyUpdateCommand,
-    current_employer_pk: TPrimaryKey = Depends(get_current_user_pk),
+    current_employer_id: TPrimaryKey = Depends(get_current_user_id),
 ):
     """Update a company for authenticated employer."""
-    command.company_pk = company_pk
-    result = await bus.handler(command, current_user_pk=current_employer_pk)
+    command.company_id = company_id
+    result = await bus.handler(command, current_user_id=current_employer_id)
     return CompanyResponse(**result.dict())
 
 
-@router.delete("/{company_pk}")
+@router.delete("/{company_id}")
 async def delete_company(
-    company_pk: TPrimaryKey,
-    current_employer_pk: TPrimaryKey = Depends(get_current_user_pk),
+    company_id: TPrimaryKey,
+    current_employer_id: TPrimaryKey = Depends(get_current_user_id),
 ):
     """Delete/inactivate a company for authenticated employer."""
-    command = EmployerCompanyDeleteCommand(company_pk=company_pk)
-    await bus.handler(command, current_user_pk=current_employer_pk)
+    command = EmployerCompanyDeleteCommand(company_id=company_id)
+    await bus.handler(command, current_user_id=current_employer_id)
 
 
-@router.post("/{company_pk}/leave")
+@router.post("/{company_id}/leave")
 async def leave_company(
-    company_pk: TPrimaryKey,
-    current_employer_pk: TPrimaryKey = Depends(get_current_user_pk),
+    company_id: TPrimaryKey,
+    current_employer_id: TPrimaryKey = Depends(get_current_user_id),
 ):
     """Leave a company for authenticated employer."""
-    command = EmployerCompanyLeaveCommand(company_pk=company_pk)
-    await bus.handler(command, current_user_pk=current_employer_pk)
+    command = EmployerCompanyLeaveCommand(company_id=company_id)
+    await bus.handler(command, current_user_id=current_employer_id)

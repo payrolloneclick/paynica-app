@@ -13,7 +13,10 @@ env.read_env(os.path.join(BASE_DIR, ENV_FILE))
 TEST_ENV = env.bool("TEST_ENV", False)
 
 # DB
-DATABASE_URI = env.str("DATABASE_URI", None)
+if TEST_ENV:
+    DATABASE_URI = env.str("TEST_DATABASE_URI", None)
+else:
+    DATABASE_URI = env.str("DATABASE_URI", None)
 
 # JWT
 JWT_SECRET_KEY = env.str("JWT_SECRET_KEY")
@@ -40,4 +43,6 @@ TORTOISE_ORM = {
             "default_connection": "default",
         },
     },
+    "use_tz": False,
+    "timezone": "UTC",
 }

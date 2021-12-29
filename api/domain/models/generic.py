@@ -7,7 +7,7 @@ from ..types import TPrimaryKey
 
 
 class AbstractModel(BaseModel):
-    pk: TPrimaryKey
+    id: TPrimaryKey
 
     created_date: Optional[datetime]
     updated_date: Optional[datetime]

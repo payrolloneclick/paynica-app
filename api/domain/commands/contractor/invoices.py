@@ -19,27 +19,27 @@ class InvoiceItemCreate(AbstractCommand):
 
 
 class InvoiceItemUpdate(AbstractCommand):
-    invoice_item_pk: TPrimaryKey
+    invoice_item_id: TPrimaryKey
     price: Optional[Decimal]
     quantity: Optional[int]
     descripion: Optional[constr(strip_whitespace=True)]
 
 
 class ContractorInvoiceCreateCommand(AbstractCommand):
-    for_company_pk: TPrimaryKey
-    recipient_account_pk: TPrimaryKey
+    for_company_id: TPrimaryKey
+    recipient_account_id: TPrimaryKey
     items: List[InvoiceItemCreate]
 
 
 class ContractorInvoiceRetrieveCommand(AbstractCommand):
-    invoice_pk: TPrimaryKey
+    invoice_id: TPrimaryKey
 
 
 class ContractorInvoiceUpdateCommand(AbstractCommand):
-    invoice_pk: TPrimaryKey
-    recipient_account_pk: Optional[TPrimaryKey]
+    invoice_id: TPrimaryKey
+    recipient_account_id: Optional[TPrimaryKey]
     items: List[InvoiceItemUpdate]
 
 
 class ContractorInvoiceDeleteCommand(AbstractCommand):
-    invoice_pk: TPrimaryKey
+    invoice_id: TPrimaryKey

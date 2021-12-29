@@ -8,4 +8,4 @@ class ContractorOperationListCommand(AbstractListCommand):
 
 
 class ContractorOperationRetrieveCommand(AbstractCommand):
-    operation_pk: TPrimaryKey
+    operation_id: TPrimaryKey

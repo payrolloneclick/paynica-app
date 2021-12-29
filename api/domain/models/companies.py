@@ -11,28 +11,28 @@ from .users import User
 
 class Company(AbstractModel):
     name: constr(strip_whitespace=True)
-    owner_pk: TPrimaryKey
+    owner_id: TPrimaryKey
     owner: Optional[User]
 
 
 class CompanyM2MEmployer(AbstractModel):
-    company_pk: TPrimaryKey
+    company_id: TPrimaryKey
     company: Optional[Company]
-    employer_pk: TPrimaryKey
+    employer_id: TPrimaryKey
     employer: Optional[User]
 
 
 class CompanyM2MContractor(AbstractModel):
-    company_pk: TPrimaryKey
+    company_id: TPrimaryKey
     company: Optional[Company]
-    contractor_pk: TPrimaryKey
+    contractor_id: TPrimaryKey
     contractor: Optional[User]
 
 
 class InviteUserToCompany(AbstractModel):
-    sender_pk: TPrimaryKey
+    sender_id: TPrimaryKey
     sender: Optional[User]
-    company_pk: TPrimaryKey
+    company_id: TPrimaryKey
     company: Optional[Company]
     email: TEmail
     invitation_code: Optional[TInvitationCode]
