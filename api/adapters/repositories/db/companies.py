@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from adapters.orm.models.companies import (
+    ORMBaseException,
     ORMCompany,
     ORMCompanyM2MContractor,
     ORMCompanyM2MEmployer,
@@ -9,6 +10,7 @@ from adapters.orm.models.companies import (
 from domain.models.companies import Company, CompanyM2MContractor, CompanyM2MEmployer, InviteUserToCompany
 from settings import DEFAULT_LIMIT
 
+from ..exceptions import RepositoryException
 from .generic import AbstractDBRepository
 
 
@@ -77,6 +79,12 @@ class CompanyM2MEmployerDBRepository(AbstractDBRepository):
 
     async def add(self, obj: CompanyM2MEmployer) -> None:
         return await super().add(obj)
+
+    async def delete(self, **kwargs) -> None:
+        try:
+            await self.orm_model_cls.filter(**kwargs).delete()
+        except ORMBaseException as e:
+            raise RepositoryException(detail=str(e))
 
 
 class InviteUserToCompanyDBRepository(AbstractDBRepository):

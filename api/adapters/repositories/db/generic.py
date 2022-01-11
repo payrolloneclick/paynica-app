@@ -101,7 +101,7 @@ class AbstractDBRepository(AbstractRepository):
 
     async def delete(self, pk: UUID4) -> UUID4:
         try:
-            await self.orm_model_cls.filter(pk=pk).delete()
+            await self.orm_model_cls.filter(pk=pk).delete()  # TODO: looks like it should be id instead of pk
         except ORMBaseException as e:
             raise RepositoryException(detail=str(e))
         return pk
